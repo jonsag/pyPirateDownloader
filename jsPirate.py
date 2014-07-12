@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, os, getopt, sys, urllib2
+import ConfigParser, os, getopt, sys, urllib2, re
 
-from xml.dom.minidom import parse, parseString
+from BeautifulSoup import BeautifulStoneSoup
 
 import xml.etree.ElementTree as ET
 
@@ -12,10 +12,12 @@ config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(__file__)) # read config file
 
 apiBaseUrl = config.get('pirateplay','apiBaseUrl') # base url for pirateplay.se api
-getStreams = config.get('pirateplay','getStreams') # get streams from pirateplay.se
+getStreamsXml = config.get('pirateplay','getStreamsXml') # get streams from pirateplay.se using XML
+getStreamsJson = config.get('pirateplay','getStreamsJson') # get streams from pirateplay.se using json
 
 url = ""
 inFile = ""
+downloads = []
 
 ##### functions #####
 
@@ -43,6 +45,48 @@ def usage(exitCode):
 
     sys.exit(exitCode)
 
+def inFilePart(inFile):
+
+    file = open(inFile)
+    lines = file.readlines()
+    file.close()
+
+    for line in lines:
+
+        if line.startswith("http"):
+            parseXml(line)
+            #parseJson(line)
+
+def parseXml(url):
+    parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXml, url)
+    print "\n\nGetting streams for %s" % parseUrl
+    print "-------------------------------------------------------------------------------------------------------------------------"
+    ppXml= urllib2.urlopen(parseUrl)
+    ppXmlString= ppXml.read()
+
+    xmlRoot = ET.fromstring(ppXmlString)
+
+    for xmlChild in xmlRoot:
+
+        print "\nQuality: %s" % xmlChild.attrib['quality']
+        print "Suffix hint: %s" % xmlChild.attrib['suffix-hint']
+        print "Required player version: %s" % xmlChild.attrib['required-player-version']
+        print "Subtitles: %s" % xmlChild.attrib['subtitles']
+        print "Video: %s" % xmlChild.text
+
+        if int(re.sub("\D", "", xmlChild.attrib['quality'])) < 1700 and int(re.sub("\D", "", xmlChild.attrib['quality'])) > 1400:
+            downloads.append((xmlChild.text, xmlChild.attrib['suffix-hint'], xmlChild.attrib['subtitles']))
+            print "Added to download list"
+
+def parseJson(url):
+    print "\n\nGetting streams for URL..."
+    print "%s/%s%s" % (apiBaseUrl, getStreamsXml, url)
+
+    ppJson= urllib2.urlopen("%s/%s%s" % (apiBaseUrl, getStreamsJson, url))
+    ppJsonString= ppJson.read()
+
+    print ppJsonString
+
 ##### handle arguments #####
 try:
     myopts, args = getopt.getopt(sys.argv[1:],'u:f:' , ['url=', 'file='])
@@ -60,47 +104,16 @@ for option, argument in myopts:
         inFile = argument
         if not os.path.isfile(inFile):
             onError(4, inFile)
+
+
 if url:
-    print "Getting streams for URL..."
-
-    print "%s/%s%s" % (apiBaseUrl, getStreams, url)
-
-    ppXml= urllib2.urlopen("%s/%s%s" % (apiBaseUrl, getStreams, url))
-    ppXmlString= ppXml.read()
-
-    print ppXmlString
-
-    #xmlTree = ET.parse('country_data.xml')
-    #xmlRoot = xmlTree.getroot()
-
-    xmlRoot = ET.fromstring(ppXmlString)
-
-    for xmlChild in xmlRoot:
-        print xmlChild.tag, xmlChild.attrib
+    parseXml(url)
+    #parseJson(url)
+elif inFile:
+    inFilePart(inFile)
 
 
-if inFile:
-
-    file = open(inFile)
-    lines = file.readlines()
-    file.close()
-    
-    for line in lines:
-
-        if len(line) > 1:
-            url = line
-
-            print "\nGetting streams for URL..."
-
-            print "%s/%s%s" % (apiBaseUrl, getStreams, url)
-            print "----------------------------------------------------------------------"
-
-            ppXml= urllib2.urlopen("%s/%s%s" % (apiBaseUrl, getStreams, url))
-            ppXmlString= ppXml.read()
-
-            print ppXmlString
-
-            xmlRoot = ET.fromstring(ppXmlString)
-
-            for xmlChild in xmlRoot:
-                print xmlChild.tag, xmlChild.attrib
+for line in downloads:
+    print "\nVideo: %s" % line[0]
+    print "Suffix: %s" % line[1]
+    print "Subs: %s" % line[2]
