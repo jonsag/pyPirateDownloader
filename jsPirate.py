@@ -4,7 +4,7 @@
 
 import ConfigParser, os, getopt, sys, urllib2, re
 
-from BeautifulSoup import BeautifulStoneSoup
+from subprocess import call
 
 import xml.etree.ElementTree as ET
 
@@ -17,6 +17,7 @@ getStreamsJson = config.get('pirateplay','getStreamsJson') # get streams from pi
 
 url = ""
 inFile = ""
+name = ""
 downloads = []
 
 ##### functions #####
@@ -35,11 +36,26 @@ def onError(errorCode, extra):
     elif errorCode == 4:
         print "%s is not a file" % extra
         sys.exit(errorCode)
+    elif errorCode == 5:
+        print "Option -u also requires setting option -n"
+        usage(errorCode)
+    elif errorCode == 6:
+        print "Option -n also requires setting option -u"
+        usage(errorCode)
+    elif errorCode == 7:
+        print "Two urls in a row. Second should be a file name"
+        sys.exit(errorCode)
+    elif errorCode == 8:
+        print "Last url did not have a following name"
+        sys.exit(errorCode)
+    elif errorCode == 9:
+        print "First line was not a url"
+        sys.exit(errorCode)
 
 def usage(exitCode):
     print "\nUsage:"
     print "----------------------------------------"
-    print "%s -a <url>" % sys.argv[0]
+    print "%s -a <url> -n <name>" % sys.argv[0]
     print "    OR"
     print "%s -f <file>" % sys.argv[0]
 
@@ -47,17 +63,32 @@ def usage(exitCode):
 
 def inFilePart(inFile):
 
+    url = ""
+    name = ""
+
     file = open(inFile)
     lines = file.readlines()
     file.close()
 
     for line in lines:
+        if len(line) > 1 and not line.startswith("#"):
+            if line.startswith("http") and not url: # line is a url and url is not set
+                url = line
+            elif url and line.startswith("http"): # url is already set and line is a url
+                onError(7, 7)
+            else:
+                name = line
+        if name and not url:
+            onError(9, 9)
+        elif url and name:
+            parseXml(url, name)
+            url = ""
+            name = ""
 
-        if line.startswith("http"):
-            parseXml(line)
-            #parseJson(line)
+    if url:
+        onError(8, 8)
 
-def parseXml(url):
+def parseXml(url,name):
     parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXml, url)
     print "\n\nGetting streams for %s" % parseUrl
     print "-------------------------------------------------------------------------------------------------------------------------"
@@ -68,28 +99,87 @@ def parseXml(url):
 
     for xmlChild in xmlRoot:
 
-        print "\nQuality: %s" % xmlChild.attrib['quality']
-        print "Suffix hint: %s" % xmlChild.attrib['suffix-hint']
-        print "Required player version: %s" % xmlChild.attrib['required-player-version']
-        print "Subtitles: %s" % xmlChild.attrib['subtitles']
-        print "Video: %s" % xmlChild.text
+        if 'quality' in xmlChild.attrib:
+            quality = xmlChild.attrib['quality']
+            print "\nQuality: %s" % quality
+        else:
+            quality = ""
+            print "No quality stated"
 
-        if int(re.sub("\D", "", xmlChild.attrib['quality'])) < 1700 and int(re.sub("\D", "", xmlChild.attrib['quality'])) > 1400:
-            downloads.append((xmlChild.text, xmlChild.attrib['suffix-hint'], xmlChild.attrib['subtitles']))
-            print "Added to download list"
+        if 'suffix-hint' in xmlChild.attrib:
+            suffixHint = xmlChild.attrib['suffix-hint']
+            print "Suffix hint: %s" % suffixHint
+        else:
+            suffixHint = "mp4"
+            print "No suffix hint stated. Assuming %s" % suffixHint
 
-def parseJson(url):
-    print "\n\nGetting streams for URL..."
-    print "%s/%s%s" % (apiBaseUrl, getStreamsXml, url)
+        if 'required-player-version' in xmlChild.attrib:
+            requiredPlayerVersion = xmlChild.attrib['required-player-version']
+            print "Required player version: %s" % requiredPlayerVersion
+        else:
+            requiredPlayerVersion = ""
+            print "No required player version stated"
 
-    ppJson= urllib2.urlopen("%s/%s%s" % (apiBaseUrl, getStreamsJson, url))
-    ppJsonString= ppJson.read()
+        if 'subtitles' in xmlChild.attrib:
+            subtitles = xmlChild.attrib['subtitles']
+            print "Subtitles: %s" % subtitles
+        else:
+            print "No subtitles"
+            subtitles = ""
 
-    print ppJsonString
+        if xmlChild.text:
+            video = xmlChild.text
+            print "Video: %s" % video
+        else:
+            video = ""
+            print "No video stated"
+
+        if int(re.sub("\D", "", quality)) < 1700 and int(re.sub("\D", "", quality)) > 1400:
+                downloads.append((video, suffixHint, subtitles, name))
+                print "Added to download list"
+
+def getVideos(downloads):
+    print "\n Starting downloads"
+    print "-------------------------------------------------------------------------------------------------------------------------"
+    for line in downloads:
+        #print "\nVideo: %s" % line[0]
+        #print "Suffix: %s" % line[1]
+        #print "Subs: %s" % line[2]
+        #print "Name: %s" % line[3]
+
+        if line[0].startswith("http"):
+            while True:
+                print 'ffmpeg -i "%s" -acodec copy -vcodec copy -absf aac_adtstoasc "%s.%s' % (line[0], line[3].rstrip(), line[1])
+                print "Downloading video..."
+                if call(["ffmpeg", "-i", line[0], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line[3].rstrip(), line[1])]):
+                    print "Failed to download video, trying again..."
+                else:
+                    print "Finished downloading video"
+                    break
+
+        elif line[0].startswith("rtmpe"):
+            while True:
+                print 'rtmpdump -o "%s.%s" -r "%s"' % (line[3].rstrip(), line[1], line[0])
+                print "Downloading video..."
+                if call(["rtmpdump", "-o", "%s.%s" % (line[3].rstrip(), line[1]), "-r", line[0]]):
+                    print "Failed to download video, trying again..."
+                else:
+                    print "Finished downloading video"
+                    break
+
+        if line[2]:
+            while True:
+                print "wget -O '%s.srt' '%s'" % (line[3].rstrip(), line[2])
+                print "Downloading subtitles..."
+                if call(["wget", "-O", "%s.srt" % line[3].rstrip(), line[2]]):
+                    print "Failed to download subtitles, tryubg again..."
+                else:
+                    print "Finished downloading subtitles"
+                    break
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:' , ['url=', 'file='])
+    myopts, args = getopt.getopt(sys.argv[1:],'u:f:n:' , ['url=', 'file=', 'name='])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -104,16 +194,20 @@ for option, argument in myopts:
         inFile = argument
         if not os.path.isfile(inFile):
             onError(4, inFile)
+    elif option in ('-n', '--name'):
+        name = argument    
 
+if url and not name:
+    onError(5, 5)
+elif name and not url:
+    onError(6, 6)
 
 if url:
-    parseXml(url)
-    #parseJson(url)
+    parseXml(url, name)
 elif inFile:
     inFilePart(inFile)
 
-
-for line in downloads:
-    print "\nVideo: %s" % line[0]
-    print "Suffix: %s" % line[1]
-    print "Subs: %s" % line[2]
+if downloads:
+    getVideos(downloads)
+else:
+    print "\nCould not find any streams to download"
