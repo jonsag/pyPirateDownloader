@@ -224,7 +224,7 @@ def getVideos(downloads):
         infoDownloaded.append({'videoName': "%s.%s" % (line[3].rstrip(), line[1]), 'fileSize': fileSize, 'fileSizeMeasure': fileSizeMeasure, 'duration': duration, 'durationFormatted': durationFormatted, 'overallBitRate': overallBitRate, 'overallBitRateMeasure': overallBitRateMeasure, 'videoFormat': videoFormat, 'videoCodecId': videoCodecId, 'videoBitRate': videoBitRate, 'videoBitRateMeasure': videoBitRateMeasure, 'width': width, 'height': height, 'frameRate': frameRate, 'frameCount': frameCount, 'audioFormat': audioFormat, 'audioCodecId': audioCodecId, 'audioBitRate': audioBitRate, 'audioBitRateMeasure': audioBitRateMeasure, 'subName': "%s.srt" % line[3].rstrip(), 'subSize': subSize, 'subLines': subLines})
 
 def getInfo(line, argument):
-    cmd = 'mediainfo %s %s.%s' % (argument, line[3].rstrip(), line[1])
+    cmd = "mediainfo %s '%s.%s'" % (argument, line[3].rstrip(), line[1])
     args = shlex.split(cmd)
     output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()
     return output.rstrip()
