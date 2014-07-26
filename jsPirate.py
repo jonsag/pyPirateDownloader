@@ -9,7 +9,7 @@ from subprocess import call, check_output, Popen, PIPE
 import xml.etree.ElementTree as ET
 
 config = ConfigParser.ConfigParser()
-config.read("%s/config.ini" % os.path.dirname(__file__)) # read config file
+config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__))) # read config file
 
 apiBaseUrl = config.get('pirateplay','apiBaseUrl') # base url for pirateplay.se api
 getStreamsXml = config.get('pirateplay','getStreamsXml') # get streams from pirateplay.se using XML
