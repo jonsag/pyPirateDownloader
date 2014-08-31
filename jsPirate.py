@@ -90,6 +90,9 @@ def inFilePart(inFile):
         onError(8, 8)
 
 def parseXml(url,name):
+    vidBitRate = 0
+    vidWidth = 0
+
     parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXml, url)
     print "\n\nGetting streams for %s" % parseUrl
     print "-------------------------------------------------------------------------------------------------------------------------"
@@ -135,9 +138,20 @@ def parseXml(url,name):
             video = ""
             print "No video stated"
 
-        if int(re.sub("\D", "", quality)) < 1700 and int(re.sub("\D", "", quality)) > 1400:
-                downloads.append((video, suffixHint, subtitles, name))
-                print "Added to download list"
+        if "bps" in quality: # quality is probably bitrate,  xxx kbps
+            vidBitRate = int(re.sub("\D", "", quality))
+            print "Video bit rate: %s" % vidBitRate
+        elif "x" in quality: # quality is probably resolution, width x height
+            vidRes = quality.split("x")
+            vidWidth = int(vidRes[0])
+            print "Video width: %s" % vidWidth
+            
+        if vidBitRate > 1400 and vidBitRate < 1700:
+            downloads.append((video, suffixHint, subtitles, name))
+            print "Added to download list"
+        elif vidWidth > 800 and vidWidth < 1000:
+            downloads.append((video, suffixHint, subtitles, name))
+            print "Added to download list"
 
 def getVideos(downloads):
     print "\n Starting downloads"
