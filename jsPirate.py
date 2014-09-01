@@ -4,7 +4,7 @@
 
 import ConfigParser, os, getopt, sys, urllib2, re, shlex
 
-from subprocess import call, check_output, Popen, PIPE
+from subprocess import call, Popen, PIPE
 
 import xml.etree.ElementTree as ET
 
@@ -67,9 +67,9 @@ def inFilePart(inFile):
     url = ""
     name = ""
 
-    file = open(inFile)
-    lines = file.readlines()
-    file.close()
+    dlList = open(inFile)
+    lines = dlList.readlines()
+    dlList.close()
 
     for line in lines:
         if len(line) > 1 and not line.startswith("#"):
