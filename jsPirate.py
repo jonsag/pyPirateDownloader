@@ -95,7 +95,7 @@ for line in infoDownloaded:
     #print "Audio bit rate: %s bps" % line['audioBitRate']
     #print "Audio bit rate: %s" % line['audioBitRateMeasure']
 
-    if line['sublines'] != 'na':
+    if line['subLines'] != 'na':
         print "\nSubtitles: %s" % line['subName']
         print "-------------------------------------------------------------------------"
         print "File size: %s b" % line['subSize']
