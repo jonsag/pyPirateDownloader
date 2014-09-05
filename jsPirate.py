@@ -58,7 +58,7 @@ else:
     if downloads:
         for line in downloads:
             #print line
-            print "Video name: %s.%s" % (line['name'].rstrip(), line['suffix'])
+            print "\nVideo name: %s.%s" % (line['name'].rstrip(), line['suffix'])
             print "Video quality: %s" % line['quality']
             print "Video address: %s" % line['address']
             if line['subs']:
