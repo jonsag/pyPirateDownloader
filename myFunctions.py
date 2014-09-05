@@ -63,7 +63,7 @@ def usage(exitCode):
 
     sys.exit(exitCode)
     
-def inFilePart(inFile, setQuality):
+def inFilePart(inFile, setQuality, listOnly):
     url = ""
     name = ""
 
@@ -83,7 +83,7 @@ def inFilePart(inFile, setQuality):
         if name and not url:
             onError(9, 9)
         elif url and name:
-            downloads = parseXml(url, name, setQuality)
+            downloads = parseXml(url, name, setQuality, listOnly)
             url = ""
             name = ""
 
@@ -92,7 +92,7 @@ def inFilePart(inFile, setQuality):
         
     return downloads
 
-def parseXml(url,name, setQuality):
+def parseXml(url,name, setQuality, listOnly):
     vidBitRate = 0
     vidWidth = 0
 
@@ -148,15 +148,24 @@ def parseXml(url,name, setQuality):
             vidWidth = int(vidRes[0])
             
         if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
-            downloads.append((video, suffixHint, subtitles, name))
-            print "Added to download list"
+            if not listOnly:
+                downloads.append((video, suffixHint, subtitles, name))
+                print "Added %s to download list" % quality
+            else:
+                print "Would have downloaded %s" % quality
         elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
-            downloads.append((video, suffixHint, subtitles, name))
-            print "Added to download list"
+            if not listOnly:
+                downloads.append((video, suffixHint, subtitles, name))
+                print "Added %s to download list" % quality
+            else:
+                print "Would have downloaded %s" % quality
         elif setQuality:
             if setQuality == vidBitRate or setQuality == vidWidth:
-                downloads.append((video, suffixHint, subtitles, name))
-                print "Added to download list"
+                if not listOnly:
+                    downloads.append((video, suffixHint, subtitles, name))
+                    print "Added %s to download list" % quality
+                else:
+                    print "Would have downloaded %s" % quality
             
     return downloads
 

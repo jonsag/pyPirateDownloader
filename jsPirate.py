@@ -11,9 +11,10 @@ url = ""
 inFile = ""
 name = ""
 setQuality = ""
+listOnly = False
 
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:n:q:' , ['url=', 'file=', 'name=', 'quality='])
+    myopts, args = getopt.getopt(sys.argv[1:],'u:f:n:q:l' , ['url=', 'file=', 'name=', 'quality=', '--list'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -31,7 +32,9 @@ for option, argument in myopts:
     elif option in ('-n', '--name'):
         name = argument
     elif option in ('-q', '--quality'):
-        setQuality = argument
+        setQuality = int(argument)
+    elif option in ('-l', '--list'):
+        listOnly = True
 
 if url and not name:
     onError(5, 5)
@@ -39,9 +42,9 @@ elif name and not url:
     onError(6, 6)
 
 if url:
-    downloads = parseXml(url, name, setQuality)
+    downloads = parseXml(url, name, setQuality, listOnly)
 elif inFile:
-    downloads = inFilePart(inFile, setQuality)
+    downloads = inFilePart(inFile, setQuality, listOnly)
 
 if downloads:
     infoDownloaded = getVideos(downloads)
