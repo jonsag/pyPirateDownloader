@@ -21,7 +21,8 @@ maxVidBitRate = int(config.get('quality', 'maxVidBitRate'))
 minVidWidth = int(config.get('quality', 'minVidWidth'))
 maxVidWidth = int(config.get('quality', 'maxVidWidth'))
 
-downloads = []
+#downloads = []
+downloads = {}
 infoDownloaded = []
 
 def onError(errorCode, extra):
