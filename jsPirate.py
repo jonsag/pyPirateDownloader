@@ -10,9 +10,10 @@ from myFunctions import parseXml, onError, inFilePart, getVideos
 url = ""
 inFile = ""
 name = ""
+setQuality = ""
 
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:n:' , ['url=', 'file=', 'name='])
+    myopts, args = getopt.getopt(sys.argv[1:],'u:f:n:q:' , ['url=', 'file=', 'name=', 'quality='])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -28,7 +29,9 @@ for option, argument in myopts:
         if not os.path.isfile(inFile):
             onError(4, inFile)
     elif option in ('-n', '--name'):
-        name = argument    
+        name = argument
+    elif option in ('-q', '--quality'):
+        setQuality = argument
 
 if url and not name:
     onError(5, 5)
@@ -36,9 +39,9 @@ elif name and not url:
     onError(6, 6)
 
 if url:
-    downloads = parseXml(url, name)
+    downloads = parseXml(url, name, setQuality)
 elif inFile:
-    downloads = inFilePart(inFile)
+    downloads = inFilePart(inFile, setQuality)
 
 if downloads:
     infoDownloaded = getVideos(downloads)

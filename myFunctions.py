@@ -15,6 +15,12 @@ apiBaseUrl = config.get('pirateplay','apiBaseUrl') # base url for pirateplay.se 
 getStreamsXml = config.get('pirateplay','getStreamsXml') # get streams from pirateplay.se using XML
 getStreamsJson = config.get('pirateplay','getStreamsJson') # get streams from pirateplay.se using json
 
+minVidBitRate = int(config.get('quality', 'minVidBitRate'))
+maxVidBitRate = int(config.get('quality', 'maxVidBitRate'))
+
+minVidWidth = int(config.get('quality', 'minVidWidth'))
+maxVidWidth = int(config.get('quality', 'maxVidWidth'))
+
 downloads = []
 infoDownloaded = []
 
@@ -57,7 +63,7 @@ def usage(exitCode):
 
     sys.exit(exitCode)
     
-def inFilePart(inFile):
+def inFilePart(inFile, setQuality):
     url = ""
     name = ""
 
@@ -77,7 +83,7 @@ def inFilePart(inFile):
         if name and not url:
             onError(9, 9)
         elif url and name:
-            downloads = parseXml(url, name)
+            downloads = parseXml(url, name, setQuality)
             url = ""
             name = ""
 
@@ -86,7 +92,7 @@ def inFilePart(inFile):
         
     return downloads
 
-def parseXml(url,name):
+def parseXml(url,name, setQuality):
     vidBitRate = 0
     vidWidth = 0
 
@@ -137,18 +143,20 @@ def parseXml(url,name):
 
         if "bps" in quality: # quality is probably bitrate,  xxx kbps
             vidBitRate = int(re.sub("\D", "", quality))
-            print "Video bit rate: %s" % vidBitRate
         elif "x" in quality: # quality is probably resolution, width x height
             vidRes = quality.split("x")
             vidWidth = int(vidRes[0])
-            print "Video width: %s" % vidWidth
             
-        if vidBitRate > 1400 and vidBitRate < 1700:
+        if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
             downloads.append((video, suffixHint, subtitles, name))
             print "Added to download list"
-        elif vidWidth > 800 and vidWidth < 1000:
+        elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
             downloads.append((video, suffixHint, subtitles, name))
             print "Added to download list"
+        elif setQuality:
+            if setQuality == vidBitRate or setQuality == vidWidth:
+                downloads.append((video, suffixHint, subtitles, name))
+                print "Added to download list"
             
     return downloads
 
