@@ -149,16 +149,16 @@ def parseXml(url,name, setQuality):
             
         if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
             #downloads.append(video, suffixHint, subtitles, name)
-            downloads.append({'address': video.rstrip(), 'suffix': suffixHint, 'subs': subtitles, 'name': name, 'quality': quality})
+            downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles, 'name': name, 'quality': quality})
             print "Added %s to download list" % quality
         elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
             #downloads.append(video, suffixHint, subtitles, name)
-            downloads.append({'address': video.rstrip(), 'suffix': suffixHint, 'subs': subtitles, 'name': name, 'quality': quality})
+            downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles, 'name': name, 'quality': quality})
             print "Added %s to download list" % quality
         elif setQuality:
             if setQuality == vidBitRate or setQuality == vidWidth:
                 #downloads.append(video, suffixHint, subtitles, name)
-                downloads.append({'address': video.rstrip(), 'suffix': suffixHint, 'subs': subtitles, 'name': name, 'quality': quality})
+                downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles, 'name': name, 'quality': quality})
                 print "Added %s to download list" % quality
             
     return downloads
@@ -170,12 +170,12 @@ def getVideos(downloads):
 
         if line['address'].startswith("http"):
             while True:
-                #print 'ffmpeg -i "%s" -acodec copy -vcodec copy -absf aac_adtstoasc "%s.%s"' % (line['address'], line['name'], line['suffix'])
+                #print 'ffmpeg -i "%s" -acodec copy -vcodec copy -absf aac_adtstoasc "%s.%s"' % (line['address'], line['name'].rstrip(), line['suffix'])
                 print "\nDownloading video..."
-                if os.path.isfile("%s.%s" % (line['name'], line['suffix']) ):
-                    print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'], line['suffix'], line['name'], line['suffix'] )
-                    os.rename( "%s.%s" % (line['name'], line['suffix']), "%s.%s.old" % (line['name'], line['suffix']) )
-                if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'], line['suffix'])]):
+                if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
+                    print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
+                    os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
+                if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'].rstrip(), line['suffix'])]):
                     print "Failed to download video, trying again..."
                 else:
                     print "Finished downloading video"
@@ -185,12 +185,12 @@ def getVideos(downloads):
             while True:
                 part1 = line['address'].partition(' playpath=')
                 part2 = part1[2].partition(' swfVfy=1 swfUrl=')
-                #print "rtmpdump", "-o", "%s.%s" % (line['name'], line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]
+                #print "rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]
                 print "\nDownloading video..."
-                if os.path.isfile("%s.%s" % (line['name'], line['suffix']) ):
-                    print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'], line['suffix'], line['name'], line['suffix'] )
-                    os.rename( "%s.%s" % (line['name'], line['suffix']), "%s.%s.old" % (line['name'], line['suffix']) )
-                if call(["rtmpdump", "-o", "%s.%s" % (line['name'], line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]]):
+                if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
+                    print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
+                    os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
+                if call(["rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]]):
                     print "Failed to download video, trying again..."
                 else:
                     print "Finished downloading video"
@@ -198,9 +198,9 @@ def getVideos(downloads):
 
         if line['subs']:
             while True:
-                #print "wget -O '%s.srt' '%s'" % (line['name'], line['subs'])
+                #print "wget -O '%s.srt' '%s'" % (line['name'].rstrip(), line['subs'])
                 print "\nDownloading subtitles..."
-                if call(["wget", "-O", "%s.srt" % line['name'], line['subs']]):
+                if call(["wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']]):
                     print "Failed to download subtitles, trying again..."
                 else:
                     print "Finished downloading subtitles"
@@ -230,20 +230,20 @@ def getVideos(downloads):
         audioBitRateMeasure = getInfo(line, '--Inform="Audio;%BitRate/String%"')
         
         if line['subs']:
-            subSize = os.path.getsize("%s.srt" % line['name'])
-            with open("%s.srt" % line['name']) as myfile:
+            subSize = os.path.getsize("%s.srt" % line['name'].rstrip())
+            with open("%s.srt" % line['name'].rstrip()) as myfile:
                 subLines = sum(1 for line in myfile) # number of lines in file
             myfile.close() # close file
         else:
             subSize = "na"
             subLines = "na"
 
-        infoDownloaded.append({'videoName': "%s.%s" % (line['name'], line['suffix']), 'fileSize': fileSize, 'fileSizeMeasure': fileSizeMeasure, 'duration': duration, 'durationFormatted': durationFormatted, 'overallBitRate': overallBitRate, 'overallBitRateMeasure': overallBitRateMeasure, 'videoFormat': videoFormat, 'videoCodecId': videoCodecId, 'videoBitRate': videoBitRate, 'videoBitRateMeasure': videoBitRateMeasure, 'width': width, 'height': height, 'frameRate': frameRate, 'frameCount': frameCount, 'audioFormat': audioFormat, 'audioCodecId': audioCodecId, 'audioBitRate': audioBitRate, 'audioBitRateMeasure': audioBitRateMeasure, 'subName': "%s.srt" % line['name'], 'subSize': subSize, 'subLines': subLines})
+        infoDownloaded.append({'videoName': "%s.%s" % (line['name'].rstrip(), line['suffix']), 'fileSize': fileSize, 'fileSizeMeasure': fileSizeMeasure, 'duration': duration, 'durationFormatted': durationFormatted, 'overallBitRate': overallBitRate, 'overallBitRateMeasure': overallBitRateMeasure, 'videoFormat': videoFormat, 'videoCodecId': videoCodecId, 'videoBitRate': videoBitRate, 'videoBitRateMeasure': videoBitRateMeasure, 'width': width, 'height': height, 'frameRate': frameRate, 'frameCount': frameCount, 'audioFormat': audioFormat, 'audioCodecId': audioCodecId, 'audioBitRate': audioBitRate, 'audioBitRateMeasure': audioBitRateMeasure, 'subName': "%s.srt" % line['name'].rstrip(), 'subSize': subSize, 'subLines': subLines})
 
     return infoDownloaded
 
 def getInfo(line, argument):
-    cmd = "mediainfo %s '%s.%s'" % (argument, line['name'], line['suffix'])
+    cmd = "mediainfo %s '%s.%s'" % (argument, line['name'].rstrip(), line['suffix'])
     args = shlex.split(cmd)
     output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()
     return output.rstrip()
