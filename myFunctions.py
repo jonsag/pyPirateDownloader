@@ -22,7 +22,6 @@ minVidWidth = int(config.get('quality', 'minVidWidth'))
 maxVidWidth = int(config.get('quality', 'maxVidWidth'))
 
 downloads = []
-#downloads = {}
 infoDownloaded = []
 
 def onError(errorCode, extra):

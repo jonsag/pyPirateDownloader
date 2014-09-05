@@ -6,13 +6,13 @@ import getopt, sys, os
 
 from myFunctions import parseXml, onError, inFilePart, getVideos
 
-##### handle arguments #####
 url = ""
 inFile = ""
 name = ""
 setQuality = ""
 listOnly = False
 
+##### handle arguments #####
 try:
     myopts, args = getopt.getopt(sys.argv[1:],'u:f:n:q:l' , ['url=', 'file=', 'name=', 'quality=', '--list'])
 
