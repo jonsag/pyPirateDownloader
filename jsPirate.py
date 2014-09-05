@@ -74,26 +74,31 @@ for line in infoDownloaded:
     print "-------------------------------------------------------------------------"
     print "File size: %s b" % line['fileSize']
     print "File size: %s" % line['fileSizeMeasure']
-    print "Duration: %s ms" % line['duration']
+    #print "Duration: %s ms" % line['duration']
     print "Duration: %s" % line['durationFormatted']
-    print "Overall bit rate: %s bps" % line['overallBitRate']
+    #print "Overall bit rate: %s bps" % line['overallBitRate']
     print "Overall bit rate: %s" % line['overallBitRateMeasure']
 
-    print "\nVideo format: %s" % line['videoFormat']
-    print "Video codec ID: %s" % line['videoCodecId']
-    print "Video bit rate: %s bps" % line['videoBitRate']
-    print "Video bit rate: %s" % line['videoBitRateMeasure']
+    print ''
+    #print "Video format: %s" % line['videoFormat']
+    #print "Video codec ID: %s" % line['videoCodecId']
+    #print "Video bit rate: %s bps" % line['videoBitRate']
+    #print "Video bit rate: %s" % line['videoBitRateMeasure']
     print "Width: %s px" % line['width']
     print "Height: %s px" % line['height']
     print "Frame rate: %s fps" % line['frameRate']
-    print "Frame count: %s" % line['frameCount']
+    #print "Frame count: %s" % line['frameCount']
 
-    print "\nAudio format: %s" % line['audioFormat']
-    print "Audio codec ID: %s" % line['audioCodecId']
-    print "Audio bit rate: %s bps" % line['audioBitRate']
-    print "Audio bit rate: %s" % line['audioBitRateMeasure']
+    #print ''
+    #print "Audio format: %s" % line['audioFormat']
+    #print "Audio codec ID: %s" % line['audioCodecId']
+    #print "Audio bit rate: %s bps" % line['audioBitRate']
+    #print "Audio bit rate: %s" % line['audioBitRateMeasure']
 
-    print "\nSubtitles: %s" % line['subName']
-    print "-------------------------------------------------------------------------"
-    print "File size: %s b" % line['subSize']
-    print "Number of lines: %s" % line['subLines']
+    if line['sublines'] != 'na':
+        print "\nSubtitles: %s" % line['subName']
+        print "-------------------------------------------------------------------------"
+        print "File size: %s b" % line['subSize']
+        print "Number of lines: %s" % line['subLines']
+    else:
+        print "\nNo subtitles downloaded"

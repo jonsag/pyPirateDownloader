@@ -197,11 +197,11 @@ def getVideos(downloads):
                     print "Finished downloading video"
                     break
 
-        if line[2]:
+        if line['subs']:
             while True:
-                #print "wget -O '%s.srt' '%s'" % (line['name'].rstrip(), line[2])
+                #print "wget -O '%s.srt' '%s'" % (line['name'].rstrip(), line['subs'])
                 print "\nDownloading subtitles..."
-                if call(["wget", "-O", "%s.srt" % line['name'].rstrip(), line[2]]):
+                if call(["wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']]):
                     print "Failed to download subtitles, tryubg again..."
                 else:
                     print "Finished downloading subtitles"
@@ -230,7 +230,7 @@ def getVideos(downloads):
         audioBitRate = getInfo(line, '--Inform="Audio;%BitRate%"')
         audioBitRateMeasure = getInfo(line, '--Inform="Audio;%BitRate/String%"')
         
-        if line[2]:
+        if line['subs']:
             subSize = os.path.getsize("%s.srt" % line['name'].rstrip())
             with open("%s.srt" % line['name'].rstrip()) as myfile:
                 subLines = sum(1 for line in myfile) # number of lines in file
