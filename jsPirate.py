@@ -42,15 +42,21 @@ elif name and not url:
     onError(6, 6)
 
 if url:
-    downloads = parseXml(url, name, setQuality, listOnly)
+    downloads = parseXml(url, name, setQuality)
 elif inFile:
-    downloads = inFilePart(inFile, setQuality, listOnly)
+    downloads = inFilePart(inFile, setQuality)
 
-if downloads:
-    infoDownloaded = getVideos(downloads)
+if not listOnly:
+    if downloads:
+        infoDownloaded = getVideos(downloads)
+    else:
+        infoDownloaded = ""
+        print "\nCould not find any streams to download"
 else:
-    infoDownloaded = ""
-    print "\nCould not find any streams to download"
+    print "\nListing only"
+    if downloads:
+        for line in downloads:
+            print line
 
 for line in infoDownloaded:
     print "\nVideo: %s" % line['videoName']

@@ -63,7 +63,7 @@ def usage(exitCode):
 
     sys.exit(exitCode)
     
-def inFilePart(inFile, setQuality, listOnly):
+def inFilePart(inFile, setQuality):
     url = ""
     name = ""
 
@@ -83,7 +83,7 @@ def inFilePart(inFile, setQuality, listOnly):
         if name and not url:
             onError(9, 9)
         elif url and name:
-            downloads = parseXml(url, name, setQuality, listOnly)
+            downloads = parseXml(url, name, setQuality)
             url = ""
             name = ""
 
@@ -92,7 +92,7 @@ def inFilePart(inFile, setQuality, listOnly):
         
     return downloads
 
-def parseXml(url,name, setQuality, listOnly):
+def parseXml(url,name, setQuality):
     vidBitRate = 0
     vidWidth = 0
 
@@ -148,24 +148,15 @@ def parseXml(url,name, setQuality, listOnly):
             vidWidth = int(vidRes[0])
             
         if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
-            if not listOnly:
-                downloads.append((video, suffixHint, subtitles, name))
-                print "Added %s to download list" % quality
-            else:
-                print "Would have downloaded %s" % quality
+            downloads.append((video, suffixHint, subtitles, name))
+            print "Added %s to download list" % quality
         elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
-            if not listOnly:
-                downloads.append((video, suffixHint, subtitles, name))
-                print "Added %s to download list" % quality
-            else:
-                print "Would have downloaded %s" % quality
+            downloads.append((video, suffixHint, subtitles, name))
+            print "Added %s to download list" % quality
         elif setQuality:
             if setQuality == vidBitRate or setQuality == vidWidth:
-                if not listOnly:
-                    downloads.append((video, suffixHint, subtitles, name))
-                    print "Added %s to download list" % quality
-                else:
-                    print "Would have downloaded %s" % quality
+                downloads.append((video, suffixHint, subtitles, name))
+                print "Added %s to download list" % quality
             
     return downloads
 
