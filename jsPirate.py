@@ -57,7 +57,15 @@ else:
     infoDownloaded = ""
     if downloads:
         for line in downloads:
-            print line
+            #print line
+            print "Video name: %s.%s" % (line['name'], line['suffix'])
+            print "Video quality: %s" % line['quality']
+            print "Video address: %s" % line['address']
+            if line['subs']:
+                print "Subtitles name: %s.srt" % line['name'] 
+                print "Subtitles address: %s" % line['subs']
+            else:
+                print "No subtitles found"
     else:
         print "\nCould not find anything that would have been downloaded"
 
