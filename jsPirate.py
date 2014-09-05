@@ -49,6 +49,7 @@ elif inFile:
 if downloads:
     infoDownloaded = getVideos(downloads)
 else:
+    infoDownloaded = ""
     print "\nCould not find any streams to download"
 
 for line in infoDownloaded:
