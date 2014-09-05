@@ -54,11 +54,11 @@ if not listOnly:
         print "\nCould not find any streams to download"
 else:
     print "\nListing only"
+    infoDownloaded = ""
     if downloads:
         for line in downloads:
             print line
     else:
-        infoDownloaded = ""
         print "\nCould not find anything that would have been downloaded"
 
 for line in infoDownloaded:
