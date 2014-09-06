@@ -72,7 +72,7 @@ else:
 for line in infoDownloaded:
     print "\nVideo: %s" % line['videoName']
     print "-------------------------------------------------------------------------"
-    print "File size: %s b" % line['fileSize']
+    #print "File size: %s b" % line['fileSize']
     print "File size: %s" % line['fileSizeMeasure']
     #print "Duration: %s ms" % line['duration']
     print "Duration: %s" % line['durationFormatted']

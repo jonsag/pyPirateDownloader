@@ -141,24 +141,24 @@ def parseXml(url,name, setQuality):
             video = ""
             print "No video stated"
 
-        if "bps" in quality: # quality is probably bitrate,  xxx kbps
+        if "bps" in quality: # quality is probably bitrate: xxx kbps
             vidBitRate = int(re.sub("\D", "", quality))
-        elif "x" in quality: # quality is probably resolution, width x height
+        elif "x" in quality: # quality is probably resolution: width x height
             vidRes = quality.split("x")
             vidWidth = int(vidRes[0])
             
         if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
-            #downloads.append(video, suffixHint, subtitles, name)
-            downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles, 'name': name, 'quality': quality})
+            downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
+                'name': name, 'quality': quality})
             print "Added %s to download list" % quality
         elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
-            #downloads.append(video, suffixHint, subtitles, name)
-            downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles, 'name': name, 'quality': quality})
+            downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
+                'name': name, 'quality': quality})
             print "Added %s to download list" % quality
         elif setQuality:
             if setQuality == vidBitRate or setQuality == vidWidth:
-                #downloads.append(video, suffixHint, subtitles, name)
-                downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles, 'name': name, 'quality': quality})
+                downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
+                    'name': name, 'quality': quality})
                 print "Added %s to download list" % quality
             
     return downloads
@@ -170,7 +170,6 @@ def getVideos(downloads):
 
         if line['address'].startswith("http"):
             while True:
-                #print 'ffmpeg -i "%s" -acodec copy -vcodec copy -absf aac_adtstoasc "%s.%s"' % (line['address'], line['name'].rstrip(), line['suffix'])
                 print "\nDownloading video..."
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
@@ -185,7 +184,6 @@ def getVideos(downloads):
             while True:
                 part1 = line['address'].partition(' playpath=')
                 part2 = part1[2].partition(' swfVfy=1 swfUrl=')
-                #print "rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]
                 print "\nDownloading video..."
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
@@ -198,7 +196,6 @@ def getVideos(downloads):
 
         if line['subs']:
             while True:
-                #print "wget -O '%s.srt' '%s'" % (line['name'].rstrip(), line['subs'])
                 print "\nDownloading subtitles..."
                 if call(["wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']]):
                     print "Failed to download subtitles, trying again..."
@@ -238,7 +235,18 @@ def getVideos(downloads):
             subSize = "na"
             subLines = "na"
 
-        infoDownloaded.append({'videoName': "%s.%s" % (line['name'].rstrip(), line['suffix']), 'fileSize': fileSize, 'fileSizeMeasure': fileSizeMeasure, 'duration': duration, 'durationFormatted': durationFormatted, 'overallBitRate': overallBitRate, 'overallBitRateMeasure': overallBitRateMeasure, 'videoFormat': videoFormat, 'videoCodecId': videoCodecId, 'videoBitRate': videoBitRate, 'videoBitRateMeasure': videoBitRateMeasure, 'width': width, 'height': height, 'frameRate': frameRate, 'frameCount': frameCount, 'audioFormat': audioFormat, 'audioCodecId': audioCodecId, 'audioBitRate': audioBitRate, 'audioBitRateMeasure': audioBitRateMeasure, 'subName': "%s.srt" % line['name'].rstrip(), 'subSize': subSize, 'subLines': subLines})
+        infoDownloaded.append({'videoName': "%s.%s" % (line['name'].rstrip(),
+            line['suffix']), 'fileSize': fileSize, 'fileSizeMeasure': fileSizeMeasure,
+            'duration': duration, 'durationFormatted': durationFormatted,
+            'overallBitRate': overallBitRate, 'overallBitRateMeasure': overallBitRateMeasure,
+            'videoFormat': videoFormat, 'videoCodecId': videoCodecId,
+            'videoBitRate': videoBitRate, 'videoBitRateMeasure': videoBitRateMeasure,
+            'width': width, 'height': height, 'frameRate': frameRate,
+            'frameCount': frameCount, 'audioFormat': audioFormat,
+            'audioCodecId': audioCodecId, 'audioBitRate': audioBitRate,
+            'audioBitRateMeasure': audioBitRateMeasure,
+            'subName': "%s.srt" % line['name'].rstrip(), 'subSize': subSize,
+            'subLines': subLines})
 
     return infoDownloaded
 
