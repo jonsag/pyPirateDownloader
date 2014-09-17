@@ -110,7 +110,7 @@ def parseXml(url,name, setQuality):
             quality = xmlChild.attrib['quality']
             print "\nQuality: %s" % quality
         else:
-            quality = ""
+            quality = "null"
             print "No quality stated"
 
         if 'suffix-hint' in xmlChild.attrib:
@@ -146,21 +146,26 @@ def parseXml(url,name, setQuality):
         elif "x" in quality: # quality is probably resolution: width x height
             vidRes = quality.split("x")
             vidWidth = int(vidRes[0])
-            
-        if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
+        
+        if quality == "null":
             downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
                 'name': name, 'quality': quality})
             print "Added %s to download list" % quality
-        elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
-            downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
-                'name': name, 'quality': quality})
-            print "Added %s to download list" % quality
-        elif setQuality:
-            if setQuality == vidBitRate or setQuality == vidWidth:
+        else:                                
+            if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
                 downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
                     'name': name, 'quality': quality})
                 print "Added %s to download list" % quality
-            
+            elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
+                downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
+                    'name': name, 'quality': quality})
+                print "Added %s to download list" % quality
+            elif setQuality:
+                if setQuality == vidBitRate or setQuality == vidWidth:
+                    downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
+                        'name': name, 'quality': quality})
+                    print "Added %s to download list" % quality     
+                    
     return downloads
 
 def getVideos(downloads):
