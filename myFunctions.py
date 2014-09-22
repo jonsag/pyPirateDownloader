@@ -22,6 +22,7 @@ minVidWidth = int(config.get('quality', 'minVidWidth'))
 maxVidWidth = int(config.get('quality', 'maxVidWidth'))
 
 group = config.get('perms', 'group')
+mask = int(config.get('perms', 'mask'))
 uid = os.getuid()
 gid = grp.getgrnam(group).gr_gid
 
@@ -176,7 +177,7 @@ def setPerms(myFile):
     print "Changing group to %s" % group
     os.chown(myFile, uid, gid)
     print "Setting write permission for group"
-    os.chmod(myFile, stat.S_IWGRP)
+    os.chmod(myFile, mask)
 
 def getVideos(downloads):
     print "\n Starting downloads"
