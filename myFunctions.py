@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, sys, urllib2, re, os, shlex
+import ConfigParser, sys, urllib2, re, os, shlex, grp, stat
 
 from subprocess import call, Popen, PIPE
 
@@ -20,6 +20,10 @@ maxVidBitRate = int(config.get('quality', 'maxVidBitRate'))
 
 minVidWidth = int(config.get('quality', 'minVidWidth'))
 maxVidWidth = int(config.get('quality', 'maxVidWidth'))
+
+group = config.get('perms', 'group')
+uid = os.getuid()
+gid = grp.getgrnam(group).gr_gid
 
 downloads = []
 infoDownloaded = []
@@ -168,6 +172,12 @@ def parseXml(url,name, setQuality):
                     
     return downloads
 
+def setPerms(myFile):
+    print "Changing group to %s" % group
+    os.chown(myFile, uid, gid)
+    print "Setting write permission for group"
+    os.chmod(myFile, stat.S_IWGRP)
+
 def getVideos(downloads):
     print "\n Starting downloads"
     print "-------------------------------------------------------------------------------------------------------------------------"
@@ -183,6 +193,7 @@ def getVideos(downloads):
                     print "Failed to download video, trying again..."
                 else:
                     print "Finished downloading video"
+                    setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']))
                     break
 
         elif line['address'].startswith("rtmpe"):
@@ -197,6 +208,7 @@ def getVideos(downloads):
                     print "Failed to download video, trying again..."
                 else:
                     print "Finished downloading video"
+                    setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']))
                     break
 
         if line['subs']:
@@ -206,6 +218,7 @@ def getVideos(downloads):
                     print "Failed to download subtitles, trying again..."
                 else:
                     print "Finished downloading subtitles"
+                    setPerms("%s.%s" % ("%s.srt" % line['name'].rstrip())
                     break
 
         print "Getting file info..."
