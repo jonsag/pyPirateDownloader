@@ -177,7 +177,8 @@ def setPerms(myFile):
     print "Changing group to %s" % group
     os.chown(myFile, uid, gid)
     print "Setting write permission for group"
-    os.chmod(myFile, mask)
+    #os.chmod(myFile, mask)
+    os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
 
 def getVideos(downloads):
     print "\n Starting downloads"
