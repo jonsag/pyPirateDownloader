@@ -218,7 +218,7 @@ def getVideos(downloads):
                     print "Failed to download subtitles, trying again..."
                 else:
                     print "Finished downloading subtitles"
-                    setPerms("%s.%s" % ("%s.srt" % line['name'].rstrip())
+                    setPerms("%s.%s" % ("%s.srt" % line['name'].rstrip()))
                     break
 
         print "Getting file info..."
