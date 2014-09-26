@@ -36,6 +36,9 @@ for option, argument in myopts:
     elif option in ('-l', '--list'):
         listOnly = True
 
+if not url and not inFile:
+    onError(3, 3)
+
 if url and not name:
     onError(5, 5)
 elif name and not url:
