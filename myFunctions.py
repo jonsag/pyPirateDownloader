@@ -195,6 +195,7 @@ def getDuration(stream, verbose):
     cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
     args = shlex.split(cmd)
     output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()
+    print output
     
     xmlRoot = ET.fromstring(output)
     for xmlChild in xmlRoot:
