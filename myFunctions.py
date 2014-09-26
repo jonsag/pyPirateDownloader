@@ -214,9 +214,14 @@ def getVideos(downloads, keepOld, verbose):
         if line['address'].startswith("http"):
             while True:
                 print "\nDownloading video..."
-                if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ) and keepOld:
-                    print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
-                    os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
+                if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
+                    print "%s.%s already exists"
+                    if keepOld:
+                        print "Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
+                        os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
+                    else:
+                        print "Deleting it"
+                        os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
                 if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'].rstrip(), line['suffix'])]):
                     print "Failed to download video, trying again..."
                 else:
