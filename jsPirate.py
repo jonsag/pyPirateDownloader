@@ -14,7 +14,7 @@ listOnly = False
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:n:q:l' , ['url=', 'file=', 'name=', 'quality=', '--list'])
+    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:q:l' , ['url=', 'file=', 'outName=', 'quality=', '--list'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -29,7 +29,7 @@ for option, argument in myopts:
         inFile = argument
         if not os.path.isfile(inFile):
             onError(4, inFile)
-    elif option in ('-n', '--name'):
+    elif option in ('-o', '--outName'):
         name = argument
     elif option in ('-q', '--quality'):
         setQuality = int(argument)
@@ -57,6 +57,8 @@ if not listOnly:
         print "\nCould not find any streams to download"
 else:
     print "\nListing only"
+    print "------------------------------------------------------------------------------------"
+    print "These files would have been downloaded:"
     infoDownloaded = ""
     if downloads:
         for line in downloads:
@@ -69,6 +71,7 @@ else:
                 print "Subtitles address: %s" % line['subs']
             else:
                 print "No subtitles found"
+            print "Duration: %s" % line['duration']
     else:
         print "\nCould not find anything that would have been downloaded"
 

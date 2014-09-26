@@ -62,9 +62,12 @@ def onError(errorCode, extra):
 def usage(exitCode):
     print "\nUsage:"
     print "----------------------------------------"
-    print "%s -a <url> -n <name>" % sys.argv[0]
-    print "    OR"
-    print "%s -f <file>" % sys.argv[0]
+    print "%s -a <url> -o <out name>" % sys.argv[0]
+    print "  OR"
+    print "%s -f <in file>" % sys.argv[0]
+    print "  OR"
+    print "%s -h" % sys.argv[0]
+    print "    Prints this"
 
     sys.exit(exitCode)
     
@@ -97,7 +100,7 @@ def inFilePart(inFile, setQuality):
         
     return downloads
 
-def parseXml(url,name, setQuality):
+def parseXml(url, name, setQuality):
     vidBitRate = 0
     vidWidth = 0
 
@@ -140,10 +143,10 @@ def parseXml(url,name, setQuality):
             subtitles = ""
 
         if xmlChild.text:
-            video = xmlChild.text
-            print "Video: %s" % video
+            videoStream = xmlChild.text
+            print "Video: %s" % videoStream
         else:
-            video = ""
+            videoStream = ""
             print "No video stated"
 
         if "bps" in quality: # quality is probably bitrate: xxx kbps
@@ -153,22 +156,26 @@ def parseXml(url,name, setQuality):
             vidWidth = int(vidRes[0])
         
         if quality == "null":
-            downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
-                'name': name, 'quality': quality})
+            streamDuration = getDuration(videoStream)
+            downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
+                              'name': name, 'quality': quality, 'duration': streamDuration})
             print "Added %s to download list" % quality
         else:                                
             if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
-                downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
-                    'name': name, 'quality': quality})
+                streamDuration = getDuration(videoStream)
+                downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
+                                  'name': name, 'quality': quality, 'duration': streamDuration})
                 print "Added %s to download list" % quality
             elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
-                downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
-                    'name': name, 'quality': quality})
+                streamDuration = getDuration(videoStream)
+                downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
+                                  'name': name, 'quality': quality, 'duration': streamDuration})
                 print "Added %s to download list" % quality
             elif setQuality:
                 if setQuality == vidBitRate or setQuality == vidWidth:
-                    downloads.append({'address': video, 'suffix': suffixHint, 'subs': subtitles,
-                        'name': name, 'quality': quality})
+                    streamDuration = getDuration(videoStream)
+                    downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
+                                      'name': name, 'quality': quality, 'duration': streamDuration})
                     print "Added %s to download list" % quality     
                     
     return downloads
@@ -179,6 +186,20 @@ def setPerms(myFile):
     print "Setting write permission for group"
     os.chmod(myFile, mask)
     #os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
+
+def getDuration(stream):
+    #  ffprobe -loglevel error -show_format -show_streams  stream  -print_format xml
+    #probeXml = call(["ffprobe", "-loglevel", "error", "-show_format", "-show_streams", stream, "-print_format", "xml"])
+    #print probeXml
+    
+    cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
+    print cmd
+    args = shlex.split(cmd)
+    print args
+    output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()
+    print output
+    duration = "00:14:32"
+    return duration
 
 def getVideos(downloads):
     print "\n Starting downloads"
