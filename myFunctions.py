@@ -200,7 +200,7 @@ def getDuration(stream, verbose):
     xmlRoot = ET.fromstring(output)
     for xmlChild in xmlRoot:
         if 'duration' in xmlChild.attrib:
-            duration = xmlChild.attrib['quality']
+            duration = xmlChild.attrib['duration']
             print "\n---\nDuration: %s\n---\n" % duration
         
     duration = "00:14:32"
