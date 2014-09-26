@@ -230,7 +230,7 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "Finished downloading video"
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
-                    if checkDurations("%s.%s" % (line, verbose):
+                    if checkDurations(line, verbose):
                         break
 
         elif line['address'].startswith("rtmpe"):
@@ -246,7 +246,7 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "Finished downloading video"
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
-                    if checkDurations("%s.%s" % (line, verbose):
+                    if checkDurations(line, verbose):
                         break
 
         if line['subs']:
