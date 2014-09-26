@@ -204,7 +204,7 @@ def getDuration(stream, verbose):
     return duration
 
 def checkDurations(line, verbose):
-    expectedDuration = int(line['duration'])
+    expectedDuration = line['duration']
     downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
     if verbose:
         print "Expected duration: %s" % expectedDuration
