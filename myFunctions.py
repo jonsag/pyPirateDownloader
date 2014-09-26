@@ -71,7 +71,7 @@ def usage(exitCode):
 
     sys.exit(exitCode)
     
-def inFilePart(inFile, setQuality):
+def inFilePart(inFile, setQuality, keepOld, verbose):
     url = ""
     name = ""
 
@@ -91,7 +91,7 @@ def inFilePart(inFile, setQuality):
         if name and not url:
             onError(9, 9)
         elif url and name:
-            downloads = parseXml(url, name, setQuality)
+            downloads = parseXml(url, name, setQuality, keepOld, verbose)
             url = ""
             name = ""
 
@@ -100,7 +100,7 @@ def inFilePart(inFile, setQuality):
         
     return downloads
 
-def parseXml(url, name, setQuality):
+def parseXml(url, name, setQuality, keepOld, verbose):
     vidBitRate = 0
     vidWidth = 0
 
@@ -156,52 +156,52 @@ def parseXml(url, name, setQuality):
             vidWidth = int(vidRes[0])
         
         if quality == "null":
-            streamDuration = getDuration(videoStream)
+            streamDuration = getDuration(videoStream, verbose)
             downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
                               'name': name, 'quality': quality, 'duration': streamDuration})
             print "Added %s to download list" % quality
         else:                                
             if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
-                streamDuration = getDuration(videoStream)
+                streamDuration = getDuration(videoStream, verbose)
                 downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
                                   'name': name, 'quality': quality, 'duration': streamDuration})
                 print "Added %s to download list" % quality
             elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
-                streamDuration = getDuration(videoStream)
+                streamDuration = getDuration(videoStream, verbose)
                 downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
                                   'name': name, 'quality': quality, 'duration': streamDuration})
                 print "Added %s to download list" % quality
             elif setQuality:
                 if setQuality == vidBitRate or setQuality == vidWidth:
-                    streamDuration = getDuration(videoStream)
+                    streamDuration = getDuration(videoStream, verbose)
                     downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
                                       'name': name, 'quality': quality, 'duration': streamDuration})
                     print "Added %s to download list" % quality     
                     
     return downloads
 
-def setPerms(myFile):
+def setPerms(myFile, verbose):
     print "Changing group to %s" % group
     os.chown(myFile, uid, gid)
     print "Setting write permission for group"
     os.chmod(myFile, mask)
     #os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
 
-def getDuration(stream):
+def getDuration(stream, verbose):
     #  ffprobe -loglevel error -show_format -show_streams  stream  -print_format xml
     #probeXml = call(["ffprobe", "-loglevel", "error", "-show_format", "-show_streams", stream, "-print_format", "xml"])
     #print probeXml
     
     cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
-    print cmd
     args = shlex.split(cmd)
-    print args
     output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()
-    print output
+    
+    xmlRoot = ET.fromstring(output)
+    
     duration = "00:14:32"
     return duration
 
-def getVideos(downloads):
+def getVideos(downloads, keepOld, verbose):
     print "\n Starting downloads"
     print "-------------------------------------------------------------------------------------------------------------------------"
     for line in downloads:
@@ -209,7 +209,7 @@ def getVideos(downloads):
         if line['address'].startswith("http"):
             while True:
                 print "\nDownloading video..."
-                if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
+                if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ) and keepOld:
                     print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
                     os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
                 if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'].rstrip(), line['suffix'])]):
@@ -276,22 +276,32 @@ def getVideos(downloads):
             subSize = "na"
             subLines = "na"
 
-        infoDownloaded.append({'videoName': "%s.%s" % (line['name'].rstrip(),
-            line['suffix']), 'fileSize': fileSize, 'fileSizeMeasure': fileSizeMeasure,
-            'duration': duration, 'durationFormatted': durationFormatted,
-            'overallBitRate': overallBitRate, 'overallBitRateMeasure': overallBitRateMeasure,
-            'videoFormat': videoFormat, 'videoCodecId': videoCodecId,
-            'videoBitRate': videoBitRate, 'videoBitRateMeasure': videoBitRateMeasure,
-            'width': width, 'height': height, 'frameRate': frameRate,
-            'frameCount': frameCount, 'audioFormat': audioFormat,
-            'audioCodecId': audioCodecId, 'audioBitRate': audioBitRate,
-            'audioBitRateMeasure': audioBitRateMeasure,
-            'subName': "%s.srt" % line['name'].rstrip(), 'subSize': subSize,
-            'subLines': subLines})
+        infoDownloaded.append({'videoName': "%s.%s" % (line['name'].rstrip(),line['suffix']),
+                               'fileSize': fileSize,
+                               'fileSizeMeasure': fileSizeMeasure,
+                               'duration': duration,
+                               'durationFormatted': durationFormatted,
+                               'overallBitRate': overallBitRate,
+                               'overallBitRateMeasure': overallBitRateMeasure,
+                               'videoFormat': videoFormat,
+                               'videoCodecId': videoCodecId,
+                               'videoBitRate': videoBitRate,
+                               'videoBitRateMeasure': videoBitRateMeasure,
+                               'width': width,
+                               'height': height,
+                               'frameRate': frameRate,
+                               'frameCount': frameCount,
+                               'audioFormat': audioFormat,
+                               'audioCodecId': audioCodecId,
+                               'audioBitRate': audioBitRate,
+                               'audioBitRateMeasure': audioBitRateMeasure,
+                               'subName': "%s.srt" % line['name'].rstrip(),
+                               'subSize': subSize,
+                               'subLines': subLines})
 
     return infoDownloaded
 
-def getInfo(line, argument):
+def getInfo(line, argument, verbose):
     cmd = "mediainfo %s '%s.%s'" % (argument, line['name'].rstrip(), line['suffix'])
     args = shlex.split(cmd)
     output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()

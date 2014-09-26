@@ -11,10 +11,12 @@ inFile = ""
 name = ""
 setQuality = ""
 listOnly = False
+verbose = False
+keepOld = False
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:q:l' , ['url=', 'file=', 'outName=', 'quality=', '--list'])
+    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:q:lkv' , ['url=', 'file=', 'outName=', 'quality=', '--list', '--keepold', '--verbose'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -35,6 +37,10 @@ for option, argument in myopts:
         setQuality = int(argument)
     elif option in ('-l', '--list'):
         listOnly = True
+    elif option in ('-k', '--keepold'):
+        keepOld = True
+    elif option in ('-v', '--verbose'):
+        verbose = True    
 
 if not url and not inFile:
     onError(3, 3)
@@ -45,9 +51,9 @@ elif name and not url:
     onError(6, 6)
 
 if url:
-    downloads = parseXml(url, name, setQuality)
+    downloads = parseXml(url, name, setQuality, keepOld, verbose)
 elif inFile:
-    downloads = inFilePart(inFile, setQuality)
+    downloads = inFilePart(inFile, setQuality, keepOld, verbose)
 
 if not listOnly:
     if downloads:
