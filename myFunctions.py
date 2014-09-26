@@ -187,24 +187,27 @@ def setPerms(myFile, verbose):
     os.chmod(myFile, mask)
     #os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
 
-def getDuration(stream, verbose):
-    #  ffprobe -loglevel error -show_format -show_streams  stream  -print_format xml
-    #probeXml = call(["ffprobe", "-loglevel", "error", "-show_format", "-show_streams", stream, "-print_format", "xml"])
-    #print probeXml
-    
+def getDuration(stream, verbose):    
     cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
     args = shlex.split(cmd)
     output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()
-    print output
-    
+        
     xmlRoot = ET.fromstring(output)
     for xmlChild in xmlRoot:
         if 'duration' in xmlChild.attrib:
             duration = xmlChild.attrib['duration']
             print "\n---\nDuration: %s\n---\n" % duration
-        
-    duration = "00:14:32"
+            
     return duration
+
+def checkDurations(line, expectedDuration, verbose):
+    durationsMatch = False
+    downloadDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
+    if verbose:
+        print "Expected duration: %s" % line['duration']
+        print "Downloaded duration: %s" % downloadDuration
+        
+    return True
 
 def getVideos(downloads, keepOld, verbose):
     print "\n Starting downloads"
@@ -227,7 +230,8 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "Finished downloading video"
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
-                    break
+                    if checkDurations("%s.%s" % (line, verbose):
+                        break
 
         elif line['address'].startswith("rtmpe"):
             while True:
@@ -242,11 +246,8 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "Finished downloading video"
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
-                    downloadDuration = getInfo(line, '--Inform="General;%Duration%"', verbose)
-                    if verbose:
-                        print "Expected duration: %s" % line['duration']
-                        print "Downloaded duration: %s" % downloadDuration
-                    break
+                    if checkDurations("%s.%s" % (line, verbose):
+                        break
 
         if line['subs']:
             while True:
