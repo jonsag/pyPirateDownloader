@@ -207,6 +207,7 @@ def checkDurations(line, verbose):
     expectedDuration = int(str(line['duration']).rstrip("0").rstrip("."))
     downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
     if verbose:
+        print "-" * scores
         print "Expected duration: %d s" % expectedDuration
         print "Downloaded duration: %d s" % downloadedDuration
         
@@ -270,6 +271,7 @@ def getVideos(downloads, keepOld, verbose):
                 if call(["wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']]):
                     print "Failed to download subtitles, trying again..."
                 else:
+                    print "-" * scores
                     print "Finished downloading subtitles"
                     setPerms("%s.srt" % line['name'].rstrip(), verbose)
                     break
