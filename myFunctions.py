@@ -236,7 +236,7 @@ def getVideos(downloads, keepOld, verbose):
                     print "Failed to download video, trying again..."
                 else:
                     print "Finished downloading video"
-                    setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']))
+                    setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                     break
 
         if line['subs']:
@@ -246,7 +246,7 @@ def getVideos(downloads, keepOld, verbose):
                     print "Failed to download subtitles, trying again..."
                 else:
                     print "Finished downloading subtitles"
-                    setPerms("%s.srt" % line['name'].rstrip())
+                    setPerms("%s.srt" % line['name'].rstrip(), verbose)
                     break
 
         print "Getting file info..."
