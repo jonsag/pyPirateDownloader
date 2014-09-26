@@ -215,7 +215,7 @@ def getVideos(downloads, keepOld, verbose):
             while True:
                 print "\nDownloading video..."
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
-                    print "%s.%s already exists"
+                    print "%s.%s already exists" % (line['name'].rstrip(), line['suffix'])
                     if keepOld:
                         print "Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
                         os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
@@ -242,7 +242,7 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "Finished downloading video"
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
-                    downloadDuration = getInfo(line, '--Inform="General;%Duration%"')
+                    downloadDuration = getInfo(line, '--Inform="General;%Duration%"', verbose)
                     if verbose:
                         print "Expected duration: %s" % line['duration']
                         print "Downloaded duration: %s" % downloadDuration
@@ -260,26 +260,26 @@ def getVideos(downloads, keepOld, verbose):
 
         print "Getting file info..."
                     
-        fileSize = getInfo(line, '--Inform="General;%FileSize%"')
-        fileSizeMeasure = getInfo(line, '--Inform="General;%FileSize/String%"')
-        duration = getInfo(line, '--Inform="General;%Duration%"')
-        durationFormatted = getInfo(line, '--Inform="General;%Duration/String3%"')
-        overallBitRate = getInfo(line, '--Inform="General;%OverallBitRate%"')
-        overallBitRateMeasure = getInfo(line, '--Inform="General;%OverallBitRate/String%"')
+        fileSize = getInfo(line, '--Inform="General;%FileSize%"', verbose)
+        fileSizeMeasure = getInfo(line, '--Inform="General;%FileSize/String%"', verbose)
+        duration = getInfo(line, '--Inform="General;%Duration%"', verbose)
+        durationFormatted = getInfo(line, '--Inform="General;%Duration/String3%"', verbose)
+        overallBitRate = getInfo(line, '--Inform="General;%OverallBitRate%"', verbose)
+        overallBitRateMeasure = getInfo(line, '--Inform="General;%OverallBitRate/String%"', verbose)
         
-        videoFormat = getInfo(line, '--Inform="Video;%Format%"')
-        videoCodecId = getInfo(line, '--Inform="Video;%CodecID%"')
-        videoBitRate = getInfo(line, '--Inform="Video;%BitRate%"')
-        videoBitRateMeasure = getInfo(line, '--Inform="Video;%BitRate/String%"')
-        width = getInfo(line, '--Inform="Video;%Width%"')
-        height = getInfo(line, '--Inform="Video;%Height%"')
-        frameRate = getInfo(line, '--Inform="Video;%FrameRate%"')
-        frameCount = getInfo(line, '--Inform="Video;%FrameCount%"')
+        videoFormat = getInfo(line, '--Inform="Video;%Format%"', verbose)
+        videoCodecId = getInfo(line, '--Inform="Video;%CodecID%"', verbose)
+        videoBitRate = getInfo(line, '--Inform="Video;%BitRate%"', verbose)
+        videoBitRateMeasure = getInfo(line, '--Inform="Video;%BitRate/String%"', verbose)
+        width = getInfo(line, '--Inform="Video;%Width%"', verbose)
+        height = getInfo(line, '--Inform="Video;%Height%"', verbose)
+        frameRate = getInfo(line, '--Inform="Video;%FrameRate%"', verbose)
+        frameCount = getInfo(line, '--Inform="Video;%FrameCount%"', verbose)
         
-        audioFormat = getInfo(line, '--Inform="Audio;%Format%"')
-        audioCodecId = getInfo(line, '--Inform="Audio;%CodecID%"')
-        audioBitRate = getInfo(line, '--Inform="Audio;%BitRate%"')
-        audioBitRateMeasure = getInfo(line, '--Inform="Audio;%BitRate/String%"')
+        audioFormat = getInfo(line, '--Inform="Audio;%Format%"', verbose)
+        audioCodecId = getInfo(line, '--Inform="Audio;%CodecID%"', verbose)
+        audioBitRate = getInfo(line, '--Inform="Audio;%BitRate%"', verbose)
+        audioBitRateMeasure = getInfo(line, '--Inform="Audio;%BitRate/String%"', verbose)
         
         if line['subs']:
             subSize = os.path.getsize("%s.srt" % line['name'].rstrip())
