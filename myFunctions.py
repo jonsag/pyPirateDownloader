@@ -21,6 +21,8 @@ maxVidBitRate = int(config.get('quality', 'maxVidBitRate'))
 minVidWidth = int(config.get('quality', 'minVidWidth'))
 maxVidWidth = int(config.get('quality', 'maxVidWidth'))
 
+scores = int(config.get('decoration', 'scores'))
+
 group = config.get('perms', 'group')
 mask = int(config.get('perms', 'mask'))
 uid = os.getuid()
@@ -61,7 +63,7 @@ def onError(errorCode, extra):
 
 def usage(exitCode):
     print "\nUsage:"
-    print "----------------------------------------"
+    print "-"  * scores
     print "%s -a <url> -o <out name>" % sys.argv[0]
     print "  OR"
     print "%s -f <in file>" % sys.argv[0]
@@ -106,7 +108,7 @@ def parseXml(url, name, setQuality, keepOld, verbose):
 
     parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXml, url)
     print "\n\nGetting streams for %s" % parseUrl
-    print "-------------------------------------------------------------------------------------------------------------------------"
+    print "-" * scores
     ppXml= urllib2.urlopen(parseUrl)
     ppXmlString= ppXml.read()
 
@@ -202,17 +204,26 @@ def getDuration(stream, verbose):
     return duration
 
 def checkDurations(line, verbose):
-    durationsMatch = False
-    downloadDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
+    expectedDuration = int(line['duration'])
+    downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
     if verbose:
-        print "Expected duration: %s" % line['duration']
-        print "Downloaded duration: %s" % downloadDuration
+        print "Expected duration: %s" % expectedDuration
+        print "Downloaded duration: %s" % downloadedDuration
         
-    return True
+    if downloadedDuration + 2 > expectedDuration and downloadedDuration - 2 < expectedDuration:
+        durationsMatch = True
+        if verbose:
+            print "Durations match"
+    else:
+        durationsMatch = False
+        if verbose:
+            print "Durations does not match"
+            
+    return durationsMatch
 
 def getVideos(downloads, keepOld, verbose):
-    print "\n Starting downloads"
-    print "-------------------------------------------------------------------------------------------------------------------------"
+    print "\nStarting downloads"
+    print "-" * scores
     for line in downloads:
 
         if line['address'].startswith("http"):
@@ -245,7 +256,7 @@ def getVideos(downloads, keepOld, verbose):
                 if call(["rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]]):
                     print "Failed to download video, trying again..."
                 else:
-                    print "Finished downloading video"
+                    print "\nFinished downloading video"
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                     if checkDurations(line, verbose):
                         break
