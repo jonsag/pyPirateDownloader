@@ -196,11 +196,12 @@ def getDuration(stream, verbose):
     for xmlChild in xmlRoot:
         if 'duration' in xmlChild.attrib:
             duration = xmlChild.attrib['duration']
-            print "\n---\nDuration: %s\n---\n" % duration
+            if verbose:
+                print "\n---\nDuration: %s\n---\n" % duration
             
     return duration
 
-def checkDurations(line, expectedDuration, verbose):
+def checkDurations(line, verbose):
     durationsMatch = False
     downloadDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
     if verbose:
