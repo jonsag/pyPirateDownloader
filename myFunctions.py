@@ -207,8 +207,8 @@ def checkDurations(line, verbose):
     expectedDuration = line['duration']
     downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
     if verbose:
-        print "Expected duration: %s" % expectedDuration
-        print "Downloaded duration: %s" % downloadedDuration
+        print "Expected duration: %d s" % expectedDuration
+        print "Downloaded duration: %d s" % downloadedDuration
         
     if downloadedDuration + 2 > expectedDuration and downloadedDuration - 2 < expectedDuration:
         durationsMatch = True
