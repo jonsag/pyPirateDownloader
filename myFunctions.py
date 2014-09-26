@@ -226,7 +226,7 @@ def getVideos(downloads, keepOld, verbose):
                     print "Failed to download video, trying again..."
                 else:
                     print "Finished downloading video"
-                    setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']))
+                    setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                     break
 
         elif line['address'].startswith("rtmpe"):
@@ -242,6 +242,10 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "Finished downloading video"
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
+                    downloadDuration = getInfo(line, '--Inform="General;%Duration%"')
+                    if verbose:
+                        print "Expected duration: %s" % line['duration']
+                        print "Downloaded duration: %s" % downloadDuration
                     break
 
         if line['subs']:
