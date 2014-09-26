@@ -240,6 +240,7 @@ def getVideos(downloads, keepOld, verbose):
                 if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'].rstrip(), line['suffix'])]):
                     print "Failed to download video, trying again..."
                 else:
+                    print "-" * scores
                     print "Finished downloading video"
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                     if checkDurations(line, verbose):
@@ -256,14 +257,16 @@ def getVideos(downloads, keepOld, verbose):
                 if call(["rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]]):
                     print "Failed to download video, trying again..."
                 else:
-                    print "\nFinished downloading video"
+                    print "-" * scores
+                    print "Finished downloading video"
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                     if checkDurations(line, verbose):
                         break
 
         if line['subs']:
             while True:
-                print "\nDownloading subtitles..."
+                print "-" * scores
+                print "Downloading subtitles..."
                 if call(["wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']]):
                     print "Failed to download subtitles, trying again..."
                 else:
@@ -271,6 +274,7 @@ def getVideos(downloads, keepOld, verbose):
                     setPerms("%s.srt" % line['name'].rstrip(), verbose)
                     break
 
+        print "-" * scores
         print "Getting file info..."
                     
         fileSize = getInfo(line, '--Inform="General;%FileSize%"', verbose)
