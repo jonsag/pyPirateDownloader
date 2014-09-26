@@ -197,7 +197,9 @@ def getDuration(stream, verbose):
     output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()
     
     xmlRoot = ET.fromstring(output)
-    
+    for xmlChild in xmlRoot:
+        print xmlChild
+        
     duration = "00:14:32"
     return duration
 
