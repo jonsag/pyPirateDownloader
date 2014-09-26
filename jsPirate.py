@@ -57,7 +57,7 @@ elif inFile:
 
 if not listOnly:
     if downloads:
-        infoDownloaded = getVideos(downloads)
+        infoDownloaded = getVideos(downloads, keepOld, verbose)
     else:
         infoDownloaded = ""
         print "\nCould not find any streams to download"
