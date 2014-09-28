@@ -256,7 +256,15 @@ def getVideos(downloads, keepOld, verbose):
                     else:
                         print "Deleting it"
                         os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
-                if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'].rstrip(), line['suffix'])]):
+                cmd = "ffmpeg -i %s -acodec copy -vcodec copy -absf aac_adtstoasc %s.%s" % (line['address'],
+                                                                                            line['name'].rstrip(), line['suffix'])
+                if verbose:
+                    print "Command: %s" % cmd                
+                args = shlex.split(cmd)
+                process = Popen(args, stdout = PIPE, stderr= PIPE)
+                output, error = process.communicate()
+                #if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'].rstrip(), line['suffix'])]):
+                if process.returncode:
                     print "Failed to download video, trying again..."
                 else:
                     print "-" * scores
@@ -273,7 +281,17 @@ def getVideos(downloads, keepOld, verbose):
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
                     os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
-                if call(["rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]]):
+                cmd = "rtmpdump -o %s.%s -r %s -y %s -W %s" % (line['name'].rstrip(), line['suffix'],
+                                                               part1[0],
+                                                               part2[0],
+                                                               part2[2])
+                if verbose:
+                    print "Command: %s" % cmd                
+                args = shlex.split(cmd)
+                process = Popen(args, stdout = PIPE, stderr= PIPE)
+                output, error = process.communicate()
+                #if call(["rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]]):
+                if process.returncode:
                     print "Failed to download video, trying again..."
                 else:
                     print "-" * scores
