@@ -205,6 +205,7 @@ def setPerms(myFile, verbose):
 
 def getDuration(stream, verbose):
     if verbose:
+        print "-" * scores
         print "Probing for duration of stream..."    
     cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
     if verbose:
@@ -218,14 +219,15 @@ def getDuration(stream, verbose):
         if 'duration' in xmlChild.attrib:
             duration = xmlChild.attrib['duration']
             if verbose:
-                print "\n---\nDuration: %s\n---\n" % duration
+                print "Duration: %s" % duration
+                print "-" * scores
             
     return duration
 
 def checkDurations(line, verbose):
+    print "-" * scores
     expectedDuration = int(str(line['duration']).rstrip("0").rstrip("."))
     downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
-    print "-" * scores
     print "Expected duration: %d s" % expectedDuration
     print "Downloaded duration: %d s" % downloadedDuration
         
@@ -284,7 +286,7 @@ def getVideos(downloads, keepOld, verbose):
             while True:
                 print "-" * scores
                 print "Downloading subtitles...\n"
-                cmd = "wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']
+                cmd = "wget -O %s.srt %s" % (line['name'].rstrip(), line['subs'])
                 if verbose:
                     print "Command: %s" % cmd                
                 args = shlex.split(cmd)
