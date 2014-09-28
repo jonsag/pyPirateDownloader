@@ -295,9 +295,7 @@ def getVideos(downloads, keepOld, verbose):
                 if verbose:
                     print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
-                process = Popen(args, stdout = PIPE, stderr= PIPE)
-                output, error = process.communicate()
-                #if call(["rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]]):
+                process = runProcess(args, verbose)
                 if process.returncode:
                     print "Failed to download video, trying again..."
                 else:
@@ -315,9 +313,7 @@ def getVideos(downloads, keepOld, verbose):
                 if verbose:
                     print "Command: %s" % cmd                
                 args = shlex.split(cmd)
-                process = Popen(args, stdout = PIPE, stderr= PIPE)
-                output, error = process.communicate()
-                #if call(["wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']]):
+                process = runProcess(args, verbose)
                 if process.returncode:
                     print "Failed to download subtitles, trying again..."
                 else:
