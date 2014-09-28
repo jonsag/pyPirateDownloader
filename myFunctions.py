@@ -206,19 +206,16 @@ def getDuration(stream, verbose):
 def checkDurations(line, verbose):
     expectedDuration = int(str(line['duration']).rstrip("0").rstrip("."))
     downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
-    if verbose:
-        print "-" * scores
-        print "Expected duration: %d s" % expectedDuration
-        print "Downloaded duration: %d s" % downloadedDuration
+    print "-" * scores
+    print "Expected duration: %d s" % expectedDuration
+    print "Downloaded duration: %d s" % downloadedDuration
         
     if downloadedDuration + 2 > expectedDuration and downloadedDuration - 2 < expectedDuration:
         durationsMatch = True
-        if verbose:
-            print "Durations match"
+        print "Durations match"
     else:
         durationsMatch = False
-        if verbose:
-            print "Durations does not match"
+        print "Durations does not match"
             
     return durationsMatch
 
