@@ -267,7 +267,8 @@ def getVideos(downloads, keepOld, verbose):
                     line = process.stdout.readline()
                     if not line:
                         break
-                    print line
+                    if "frame=" in line:
+                        print line
                 #output, error = process.communicate()
                 #print "Output:\n=======================\n%s" % output
                 #print "Error:\n=======================\n%s" % error
@@ -277,6 +278,7 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "-" * scores
                     print "Finished downloading video"
+                    print "%s.%s" % (line['name'].rstrip(), line['suffix'])
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                     if checkDurations(line, verbose):
                         break
