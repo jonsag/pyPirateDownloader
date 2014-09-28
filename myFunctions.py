@@ -293,8 +293,8 @@ def getVideos(downloads, keepOld, verbose):
                                                                part2[2])
                 if verbose:
                     print "Command: %s\n" % cmd                
-                args = shlex.split(cmd)
-                process = runProcess(args, verbose)
+                    args = shlex.split(cmd)
+                    process = runProcess(args, verbose)
                     print "Failed to download video, trying again..."
                 else:
                     print "-" * scores
