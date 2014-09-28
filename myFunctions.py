@@ -106,6 +106,8 @@ def parseXml(url, name, setQuality, keepOld, verbose):
     vidBitRate = 0
     vidWidth = 0
 
+    if verbose:
+        print "Parsing the response from pirateplay.se API..."
     parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXml, url)
     print "\n\nGetting streams for %s" % parseUrl
     print "-" * scores
@@ -118,38 +120,48 @@ def parseXml(url, name, setQuality, keepOld, verbose):
 
         if 'quality' in xmlChild.attrib:
             quality = xmlChild.attrib['quality']
-            print "\nQuality: %s" % quality
+            if verbose:
+                print "\nQuality: %s" % quality
         else:
             quality = "null"
-            print "No quality stated"
+            if verbose:
+                print "No quality stated"
 
         if 'suffix-hint' in xmlChild.attrib:
             suffixHint = xmlChild.attrib['suffix-hint']
-            print "Suffix hint: %s" % suffixHint
+            if verbose:
+                print "Suffix hint: %s" % suffixHint
         else:
             suffixHint = "mp4"
-            print "No suffix hint stated. Assuming %s" % suffixHint
+            if verbose:
+                print "No suffix hint stated. Assuming %s" % suffixHint
 
         if 'required-player-version' in xmlChild.attrib:
             requiredPlayerVersion = xmlChild.attrib['required-player-version']
-            print "Required player version: %s" % requiredPlayerVersion
+            if verbose:
+                print "Required player version: %s" % requiredPlayerVersion
         else:
             requiredPlayerVersion = ""
-            print "No required player version stated"
+            if verbose:
+                print "No required player version stated"
 
         if 'subtitles' in xmlChild.attrib:
             subtitles = xmlChild.attrib['subtitles']
-            print "Subtitles: %s" % subtitles
+            if verbose:
+                print "Subtitles: %s" % subtitles
         else:
-            print "No subtitles"
+            if verbose:
+                print "No subtitles"
             subtitles = ""
 
         if xmlChild.text:
             videoStream = xmlChild.text
-            print "Video: %s" % videoStream
+            if verbose:
+                print "Video: %s" % videoStream
         else:
             videoStream = ""
-            print "No video stated"
+            if verbose:
+                print "No video stated"
 
         if "bps" in quality: # quality is probably bitrate: xxx kbps
             vidBitRate = int(re.sub("\D", "", quality))
@@ -183,16 +195,21 @@ def parseXml(url, name, setQuality, keepOld, verbose):
     return downloads
 
 def setPerms(myFile, verbose):
+    if verbose:
+        print "Setting ownership and permissions..."
     print "Changing group to %s" % group
     os.chown(myFile, uid, gid)
     print "Setting write permission for group"
     os.chmod(myFile, mask)
     #os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
 
-def getDuration(stream, verbose):    
+def getDuration(stream, verbose):
+    if verbose:
+        print "Probing for duration of stream..."    
     cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
     args = shlex.split(cmd)
-    output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()
+    process = Popen(args, stdout = PIPE, stderr= PIPE)
+    output, error = process.communicate()
         
     xmlRoot = ET.fromstring(output)
     for xmlChild in xmlRoot:
@@ -334,5 +351,6 @@ def getVideos(downloads, keepOld, verbose):
 def getInfo(line, argument, verbose):
     cmd = "mediainfo %s '%s.%s'" % (argument, line['name'].rstrip(), line['suffix'])
     args = shlex.split(cmd)
-    output, error = Popen(args, stdout = PIPE, stderr= PIPE).communicate()
+    process = Popen(args, stdout = PIPE, stderr= PIPE)
+    output, error = process.communicate()
     return output.rstrip()
