@@ -240,6 +240,15 @@ def checkDurations(line, verbose):
             
     return durationsMatch
 
+def runProcess(args, verbose):
+    process = Popen(args, stdout = PIPE)
+    while True:
+        output = process.stdout.readline()
+        if not output:
+            break
+        print output
+    return process
+
 def getVideos(downloads, keepOld, verbose):
     print "\nStarting downloads"
     print "-" * scores
@@ -261,18 +270,7 @@ def getVideos(downloads, keepOld, verbose):
                 if verbose:
                     print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
-                #process = Popen(args, stdout = PIPE, stderr= PIPE)
-                process = Popen(args, stdout = PIPE)
-                while True:
-                    output = process.stdout.readline()
-                    if not output:
-                        break
-                    if "frame=" in output:
-                        print line
-                #output, error = process.communicate()
-                #print "Output:\n=======================\n%s" % output
-                #print "Error:\n=======================\n%s" % error
-                #if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'].rstrip(), line['suffix'])]):
+                process = runProcess(args, verbose)
                 if process.returncode:
                     print "Failed to download video, trying again..."
                 else:
