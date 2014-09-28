@@ -278,6 +278,8 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "-" * scores
                     print "Finished downloading video"
+                    print line['name'].rstrip()
+                    print line['suffix']
                     print "%s.%s" % (line['name'].rstrip(), line['suffix'])
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                     if checkDurations(line, verbose):
