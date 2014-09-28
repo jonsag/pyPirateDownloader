@@ -120,12 +120,10 @@ def parseXml(url, name, setQuality, keepOld, verbose):
 
         if 'quality' in xmlChild.attrib:
             quality = xmlChild.attrib['quality']
-            if verbose:
-                print "\nQuality: %s" % quality
+            print "\nQuality: %s" % quality
         else:
             quality = "null"
-            if verbose:
-                print "No quality stated"
+            print "No quality stated: %s" % quality
 
         if 'suffix-hint' in xmlChild.attrib:
             suffixHint = xmlChild.attrib['suffix-hint']
@@ -209,7 +207,7 @@ def getDuration(stream, verbose):
         print "Probing for duration of stream..."    
     cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
     if verbose:
-        print "Command: %s" % cmd
+        print "Command: %s\n" % cmd
     args = shlex.split(cmd)
     process = Popen(args, stdout = PIPE, stderr= PIPE)
     output, error = process.communicate()
@@ -237,6 +235,7 @@ def checkDurations(line, verbose):
     else:
         durationsMatch = False
         print "Durations does not match"
+        print "Will try to download again"
             
     return durationsMatch
 
@@ -296,7 +295,6 @@ def getVideos(downloads, keepOld, verbose):
                     print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
                 process = runProcess(args, verbose)
-                if process.returncode:
                     print "Failed to download video, trying again..."
                 else:
                     print "-" * scores
@@ -311,7 +309,7 @@ def getVideos(downloads, keepOld, verbose):
                 print "Downloading subtitles...\n"
                 cmd = "wget -O %s.srt %s" % (line['name'].rstrip(), line['subs'])
                 if verbose:
-                    print "Command: %s" % cmd                
+                    print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
                 process = runProcess(args, verbose)
                 if process.returncode:
