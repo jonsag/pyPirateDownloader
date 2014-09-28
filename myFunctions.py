@@ -262,6 +262,11 @@ def getVideos(downloads, keepOld, verbose):
                     print "Command: %s" % cmd                
                 args = shlex.split(cmd)
                 process = Popen(args, stdout = PIPE, stderr= PIPE)
+                while True:
+                    line = process.stdout.readline()
+                    if not line:
+                        break
+                    print line
                 output, error = process.communicate()
                 #if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'].rstrip(), line['suffix'])]):
                 if process.returncode:
@@ -289,6 +294,11 @@ def getVideos(downloads, keepOld, verbose):
                     print "Command: %s" % cmd                
                 args = shlex.split(cmd)
                 process = Popen(args, stdout = PIPE, stderr= PIPE)
+                while True:
+                    line = process.stdout.readline()
+                    if not line:
+                        break
+                    print line
                 output, error = process.communicate()
                 #if call(["rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]]):
                 if process.returncode:
