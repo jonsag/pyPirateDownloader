@@ -259,15 +259,15 @@ def getVideos(downloads, keepOld, verbose):
                 cmd = "ffmpeg -i %s -acodec copy -vcodec copy -absf aac_adtstoasc %s.%s" % (line['address'],
                                                                                             line['name'].rstrip(), line['suffix'])
                 if verbose:
-                    print "Command: %s" % cmd                
+                    print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
                 #process = Popen(args, stdout = PIPE, stderr= PIPE)
-                process = Popen(args, stdout = PIPE)
+                process, error = Popen(args, stdout = PIPE, stderr= PIPE)
                 while True:
-                    line = process.stdout.readline()
-                    if not line:
+                    output = process.stdout.readline()
+                    if not output:
                         break
-                    if "frame=" in line:
+                    if "frame=" in output:
                         print line
                 #output, error = process.communicate()
                 #print "Output:\n=======================\n%s" % output
@@ -278,9 +278,6 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "-" * scores
                     print "Finished downloading video"
-                    print line['name'].rstrip()
-                    print line['suffix']
-                    print "%s.%s" % (line['name'].rstrip(), line['suffix'])
                     setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                     if checkDurations(line, verbose):
                         break
@@ -298,14 +295,9 @@ def getVideos(downloads, keepOld, verbose):
                                                                part2[0],
                                                                part2[2])
                 if verbose:
-                    print "Command: %s" % cmd                
+                    print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
                 process = Popen(args, stdout = PIPE, stderr= PIPE)
-                while True:
-                    line = process.stdout.readline()
-                    if not line:
-                        break
-                    print line
                 output, error = process.communicate()
                 #if call(["rtmpdump", "-o", "%s.%s" % (line['name'].rstrip(), line['suffix']), "-r", part1[0], "-y", part2[0], "-W", part2[2]]):
                 if process.returncode:
