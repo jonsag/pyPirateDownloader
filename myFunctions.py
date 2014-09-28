@@ -262,7 +262,7 @@ def getVideos(downloads, keepOld, verbose):
                     print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
                 #process = Popen(args, stdout = PIPE, stderr= PIPE)
-                process = Popen(args, stdout = PIPE, stderr= PIPE)
+                process = Popen(args, stdout = PIPE)
                 while True:
                     output = process.stdout.readline()
                     if not output:
