@@ -261,15 +261,16 @@ def getVideos(downloads, keepOld, verbose):
                 if verbose:
                     print "Command: %s" % cmd                
                 args = shlex.split(cmd)
-                process = Popen(args, stdout = PIPE, stderr= PIPE)
+                #process = Popen(args, stdout = PIPE, stderr= PIPE)
+                process = Popen(args, stdout = PIPE)
                 while True:
                     line = process.stdout.readline()
                     if not line:
                         break
                     print line
-                output, error = process.communicate()
-                print "Output:\n=======================\n%s" % output
-                print "Error:\n=======================\n%s" % error
+                #output, error = process.communicate()
+                #print "Output:\n=======================\n%s" % output
+                #print "Error:\n=======================\n%s" % error
                 #if call(["ffmpeg", "-i", line['address'], "-acodec", "copy", "-vcodec", "copy", "-absf", "aac_adtstoasc", "%s.%s" % (line['name'].rstrip(), line['suffix'])]):
                 if process.returncode:
                     print "Failed to download video, trying again..."
