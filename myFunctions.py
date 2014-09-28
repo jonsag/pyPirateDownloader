@@ -207,6 +207,8 @@ def getDuration(stream, verbose):
     if verbose:
         print "Probing for duration of stream..."    
     cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
+    if verbose:
+        print "Command: %s" % cmd
     args = shlex.split(cmd)
     process = Popen(args, stdout = PIPE, stderr= PIPE)
     output, error = process.communicate()
@@ -243,7 +245,7 @@ def getVideos(downloads, keepOld, verbose):
 
         if line['address'].startswith("http"):
             while True:
-                print "\nDownloading video..."
+                print "Downloading video...\n"
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exists" % (line['name'].rstrip(), line['suffix'])
                     if keepOld:
@@ -265,7 +267,7 @@ def getVideos(downloads, keepOld, verbose):
             while True:
                 part1 = line['address'].partition(' playpath=')
                 part2 = part1[2].partition(' swfVfy=1 swfUrl=')
-                print "\nDownloading video..."
+                print "Downloading video...\n"
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
                     os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
@@ -281,8 +283,15 @@ def getVideos(downloads, keepOld, verbose):
         if line['subs']:
             while True:
                 print "-" * scores
-                print "Downloading subtitles..."
-                if call(["wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']]):
+                print "Downloading subtitles...\n"
+                cmd = "wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']
+                if verbose:
+                    print "Command: %s" % cmd                
+                args = shlex.split(cmd)
+                process = Popen(args, stdout = PIPE, stderr= PIPE)
+                output, error = process.communicate()
+                #if call(["wget", "-O", "%s.srt" % line['name'].rstrip(), line['subs']]):
+                if process.returncode:
                     print "Failed to download subtitles, trying again..."
                 else:
                     print "-" * scores
@@ -350,6 +359,8 @@ def getVideos(downloads, keepOld, verbose):
 
 def getInfo(line, argument, verbose):
     cmd = "mediainfo %s '%s.%s'" % (argument, line['name'].rstrip(), line['suffix'])
+    if verbose:
+        print "Command: %s" % cmd
     args = shlex.split(cmd)
     process = Popen(args, stdout = PIPE, stderr= PIPE)
     output, error = process.communicate()
