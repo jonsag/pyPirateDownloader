@@ -64,9 +64,9 @@ if not listOnly:
 else:
     print "\nListing only"
     print "------------------------------------------------------------------------------------"
-    print "These files would have been downloaded:"
     infoDownloaded = ""
     if downloads:
+        print "These files would have been downloaded:"
         for line in downloads:
             #print line
             print "\nVideo name: %s.%s" % (line['name'].rstrip(), line['suffix'])
@@ -79,7 +79,7 @@ else:
                 print "No subtitles found"
             print "Duration: %s" % line['duration']
     else:
-        print "\nCould not find anything that would have been downloaded"
+        print "Could not find anything that would have been downloaded"
 
 for line in infoDownloaded:
     print "\nVideo: %s" % line['videoName']

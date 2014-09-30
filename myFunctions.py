@@ -219,6 +219,8 @@ def getDuration(stream, verbose):
             if verbose:
                 print "Duration: %s" % duration
                 print "-" * scores
+        else:
+            duration = 0
             
     return duration
 
