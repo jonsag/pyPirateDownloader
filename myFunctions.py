@@ -266,7 +266,7 @@ def getVideos(downloads, keepOld, verbose):
                     else:
                         print "Deleting it"
                         os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
-                cmd = "ffmpeg -i %s -acodec copy -vcodec copy -absf aac_adtstoasc %s.%s" % (line['address'],
+                cmd = "ffmpeg -i %s -acodec copy -vcodec copy -absf aac_adtstoasc '%s.%s'" % (line['address'],
                                                                                             line['name'].rstrip(), line['suffix'])
                 if verbose:
                     print "Command: %s\n" % cmd                
@@ -289,7 +289,7 @@ def getVideos(downloads, keepOld, verbose):
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
                     os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
-                cmd = "rtmpdump -o %s.%s -r %s -y %s -W %s" % (line['name'].rstrip(), line['suffix'],
+                cmd = "rtmpdump -o '%s.%s' -r %s -y %s -W %s" % (line['name'].rstrip(), line['suffix'],
                                                                part1[0],
                                                                part2[0],
                                                                part2[2])
@@ -309,7 +309,7 @@ def getVideos(downloads, keepOld, verbose):
             while True:
                 print "-" * scores
                 print "Downloading subtitles...\n"
-                cmd = "wget -O %s.srt %s" % (line['name'].rstrip(), line['subs'])
+                cmd = "wget -O '%s.srt' %s" % (line['name'].rstrip(), line['subs'])
                 if verbose:
                     print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
