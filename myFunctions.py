@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, sys, urllib2, re, os, shlex, grp, stat
+import ConfigParser, sys, urllib2, re, os, shlex, grp
 
-from subprocess import call, Popen, PIPE
+from subprocess import Popen, PIPE
+from time import sleep
 
 import xml.etree.ElementTree as ET
 
@@ -12,8 +13,10 @@ config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__))) # read config file
 
 apiBaseUrl = config.get('pirateplay','apiBaseUrl') # base url for pirateplay.se api
-getStreamsXml = config.get('pirateplay','getStreamsXml') # get streams from pirateplay.se using XML
+getStreamsXML = config.get('pirateplay','getStreamsXML') # get streams from pirateplay.se using XML
 getStreamsJson = config.get('pirateplay','getStreamsJson') # get streams from pirateplay.se using json
+maxTrys = int(config.get('pirateplay','maxTrys'))
+waitTime = int(config.get('pirateplay','waitTime'))
 
 minVidBitRate = int(config.get('quality', 'minVidBitRate'))
 maxVidBitRate = int(config.get('quality', 'maxVidBitRate'))
@@ -60,6 +63,9 @@ def onError(errorCode, extra):
     elif errorCode == 9:
         print "First line was not a url"
         sys.exit(errorCode)
+    elif errorCode == 10:
+        print extra
+        sys.exit(errorCode)
 
 def usage(exitCode):
     print "\nUsage:"
@@ -93,7 +99,7 @@ def inFilePart(inFile, setQuality, keepOld, verbose):
         if name and not url:
             onError(9, 9)
         elif url and name:
-            downloads = parseXml(url, name, setQuality, keepOld, verbose)
+            downloads = parseXML(url, name, setQuality, keepOld, verbose)
             url = ""
             name = ""
 
@@ -102,30 +108,55 @@ def inFilePart(inFile, setQuality, keepOld, verbose):
         
     return downloads
 
-def parseXml(url, name, setQuality, keepOld, verbose):
+def parseXML(url, name, setQuality, keepOld, verbose):
     vidBitRate = 0
     vidWidth = 0
 
     if verbose:
         print "Parsing the response from pirateplay.se API..."
-    parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXml, url)
+    parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXML, url)
     print "\n\nGetting streams for %s" % parseUrl
     print "-" * scores
     
+    gotAnswer = False
+    trys = 0
+    gotXML = False
     while True:
-        ppXml= urllib2.urlopen(parseUrl)
-        try:
-            ppXmlString= ppXml.read()
-        except:
-            print "*** Did not receive a valid XML. Trying again..."
-        else:
-            if verbose:
-                print "Downloaded a valid XML"
-            break
+        while True:
+            trys += 1
+            if trys > maxTrys:
+                onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+            try:
+                piratePlayXML= urllib2.urlopen(parseUrl)
+            except urllib2.HTTPError, e:
+                print "HTTPError\n    %s\n    Trying again...\n" % str(e.code)
+                sleep(waitTime)
+            except urllib2.URLError, e:
+                print "URLError\n    %s\n    Trying again...\n" % str(e.reason)
+                sleep(waitTime)
+            except:
+                print "Error\n    Trying again...\n"
+                sleep(waitTime)
+            else:
+                gotAnswer = True
+                break
         
+        while True:
+            try:
+                piratePlayXMLString= piratePlayXML.read()
+            except:
+                print "*** Did not receive a valid XML. Trying again..."
+            else:
+                if verbose:
+                    print "Downloaded a valid XML"
+                gotXML = True
+                break
+            
+        if gotAnswer and gotXML:
+            break
     
 
-    xmlRoot = ET.fromstring(ppXmlString)
+    xmlRoot = ET.fromstring(piratePlayXMLString)
 
     for xmlChild in xmlRoot:
 
@@ -238,6 +269,10 @@ def getDuration(stream, verbose):
     args = shlex.split(cmd)
     try:
         process = Popen(args, stdout = PIPE, stderr= PIPE)
+    except OSError as e:
+        print "*** %s\n    You are probably missing ffmpeg\n" % e
+        duration = 0
+    else:
         output, error = process.communicate()
         xmlRoot = ET.fromstring(output)
         for xmlChild in xmlRoot:
@@ -248,9 +283,6 @@ def getDuration(stream, verbose):
                     print "-" * scores
             else:
                 duration = 0
-    except OSError as e:
-        print "*** %s: Probably you are missing ffmpeg" % e
-        duration = 0
             
     return duration
 
