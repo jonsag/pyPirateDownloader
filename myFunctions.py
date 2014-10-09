@@ -296,7 +296,8 @@ def getDuration(stream, verbose):
             else:
                 if verbose:
                     print "Downloaded a valid XML"
-                    print xmlRoot
+                    for xmlChild in xmlRoot:
+                        print xmlChild
                 gotXML = True
                 
                 for xmlChild in xmlRoot:
@@ -305,9 +306,9 @@ def getDuration(stream, verbose):
                         if verbose:
                             print "Duration: %s" % duration
                             print "-" * scores
-                    else:
-                        print "Could not find a duration in XML"
-                        print "-" * scores
+                            
+                if not duration and verbose:
+                    print "Could not find duration in XML"
         else:
             gotAnswer = True
             gotXML = True
