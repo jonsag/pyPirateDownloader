@@ -403,7 +403,7 @@ def getVideos(downloads, keepOld, verbose):
 
         if line['address'].startswith("http"):
             while True:
-                print "Downloading video...\n"
+                print "Downloading video %s.%s ...\n" % (line['name'].rstrip(), line['suffix'])
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exists" % (line['name'].rstrip(), line['suffix'])
                     if keepOld:
@@ -417,19 +417,23 @@ def getVideos(downloads, keepOld, verbose):
                 cmd =  ffmpegDownloadCommand(line, verbose)
                 process = runProcess(cmd, verbose)
                 if process.returncode:
+                    print "-" * scores
                     print "Failed to download video, trying again..."
                 else:
-                    print "-" * scores
-                    print "Finished downloading video"
                     if (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and 
                         checkDurations(line, verbose)
                         ):
+                        print "-" * scores
+                        print "Finished downloading video"
                         setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                         break
+                    else:
+                        print "-" * scores
+                        print "Failed to download video, trying again..."
 
         elif line['address'].startswith("rtmpe"):
             while True:
-                print "Downloading video...\n"
+                print "Downloading video %s.%s ...\n" % (line['name'].rstrip(), line['suffix'])
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exist." % (line['name'].rstrip(), line['suffix'])
                     if keepOld:
@@ -442,30 +446,38 @@ def getVideos(downloads, keepOld, verbose):
                 cmd = rtmpdumpDownloadCommand(line, verbose)
                 process = runProcess(cmd, verbose)
                 if process.returncode:
+                    print "-" * scores
                     print "Failed to download video, trying again..."
                 else:
-                    print "-" * scores
-                    print "Finished downloading video"
                     if (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and
                         checkDurations(line, verbose)
                         ):
+                        print "-" * scores
+                        print "Finished downloading video"
                         setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                         break
+                    else:
+                        print "-" * scores
+                        print "Finished downloading video"
 
         if line['subs']:
             while True:
                 print "-" * scores
-                print "Downloading subtitles...\n"
+                print "Downloading subtitles %s.srt ...\n" % line['name'].rstrip()
                 cmd = wgetDownloadCommand(line, verbose)
                 process = runProcess(cmd, verbose)
                 if process.returncode:
+                    print "-" * scores
                     print "Failed to download subtitles, trying again..."
                 else:
-                    print "-" * scores
-                    print "Finished downloading subtitles"
                     if os.path.isfile("%s.srt" % line['name'].rstrip()):
+                        print "-" * scores
+                        print "Finished downloading subtitles"
                         setPerms("%s.srt" % line['name'].rstrip(), verbose)
                         break
+                    else:
+                        print "-" * scores
+                        print "Finished downloading subtitles"
 
         print "-" * scores
         print "Getting file info..."
