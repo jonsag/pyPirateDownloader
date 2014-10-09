@@ -286,25 +286,27 @@ def getDuration(stream, verbose):
                     print "Got an answer"
                 output, error = process.communicate()
                 gotAnswer = True
+                break
                 
-                if not noFFmpeg:
-                    try:
-                        xmlRoot = ET.fromstring(output)
-                    except:
-                        print "*** Did not receive a valid XML. Trying again..."
-                    else:
+        if not noFFmpeg:
+            try:
+                xmlRoot = ET.fromstring(output)
+            except:
+                print "*** Did not receive a valid XML. Trying again..."
+            else:
+                if verbose:
+                    print "Downloaded a valid XML"
+                gotXML = True
+                
+                for xmlChild in xmlRoot:
+                    if 'duration' in xmlChild.attrib:
+                        duration = xmlChild.attrib['duration']
                         if verbose:
-                            print "Downloaded a valid XML"
-                        gotXML = True
-                        for xmlChild in xmlRoot:
-                            if 'duration' in xmlChild.attrib:
-                                duration = xmlChild.attrib['duration']
-                                if verbose:
-                                    print "Duration: %s" % duration
-                                    print "-" * scores
-                else:
-                    gotAnswer = True
-                    gotXML = True
+                            print "Duration: %s" % duration
+                            print "-" * scores
+        else:
+            gotAnswer = True
+            gotXML = True
                         
         if gotAnswer and gotXML:
             break
