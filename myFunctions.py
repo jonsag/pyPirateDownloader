@@ -111,6 +111,10 @@ def inFilePart(inFile, setQuality, keepOld, verbose):
 def parseXML(url, name, setQuality, keepOld, verbose):
     vidBitRate = 0
     vidWidth = 0
+    
+    gotAnswer = False
+    trys = 0
+    gotXML = False
 
     if verbose:
         print "Parsing the response from pirateplay.se API..."
@@ -118,9 +122,6 @@ def parseXML(url, name, setQuality, keepOld, verbose):
     print "\n\nGetting streams for %s" % parseUrl
     print "-" * scores
     
-    gotAnswer = False
-    trys = 0
-    gotXML = False
     while True:
         while True:
             trys += 1
@@ -138,24 +139,23 @@ def parseXML(url, name, setQuality, keepOld, verbose):
                 print "Error\n    Trying again...\n"
                 sleep(waitTime)
             else:
+                if verbose:
+                    print "Got answer"
                 gotAnswer = True
                 break
         
-        while True:
-            try:
-                piratePlayXMLString= piratePlayXML.read()
-            except:
-                print "*** Did not receive a valid XML. Trying again..."
-            else:
-                if verbose:
-                    print "Downloaded a valid XML"
-                gotXML = True
-                break
+        try:
+            piratePlayXMLString= piratePlayXML.read()
+        except:
+            print "*** Did not receive a valid XML. Trying again..."
+        else:
+            if verbose:
+                print "Downloaded a valid XML"
+            gotXML = True
             
         if gotAnswer and gotXML:
             break
     
-
     xmlRoot = ET.fromstring(piratePlayXMLString)
 
     for xmlChild in xmlRoot:
@@ -260,6 +260,11 @@ def setPerms(myFile, verbose):
     #os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
 
 def getDuration(stream, verbose):
+    duration = 0
+    gotAnswer = False
+    gotXML = False
+    noFFmpeg = False
+    
     if verbose:
         print "-" * scores
         print "Probing for duration of stream..."    
@@ -267,22 +272,40 @@ def getDuration(stream, verbose):
     if verbose:
         print "Command: %s\n" % cmd
     args = shlex.split(cmd)
-    try:
-        process = Popen(args, stdout = PIPE, stderr= PIPE)
-    except OSError as e:
-        print "*** %s\n    You are probably missing ffmpeg\n" % e
-        duration = 0
-    else:
-        output, error = process.communicate()
-        xmlRoot = ET.fromstring(output)
-        for xmlChild in xmlRoot:
-            if 'duration' in xmlChild.attrib:
-                duration = xmlChild.attrib['duration']
-                if verbose:
-                    print "Duration: %s" % duration
-                    print "-" * scores
+    
+    while True:
+        while True:
+            try:
+                process = Popen(args, stdout = PIPE, stderr= PIPE)
+            except OSError as e:
+                print "*** %s\n    You are probably missing ffmpeg\n" % e
+                noFFmpeg = True
+                break
             else:
-                duration = 0
+                output, error = process.communicate()
+                gotAnswer = True
+                
+                if not noFFmpeg:
+                    try:
+                        xmlRoot = ET.fromstring(output)
+                    except:
+                        print "*** Did not receive a valid XML. Trying again..."
+                    else:
+                        if verbose:
+                            print "Downloaded a valid XML"
+                        gotXML = True
+                        for xmlChild in xmlRoot:
+                            if 'duration' in xmlChild.attrib:
+                                duration = xmlChild.attrib['duration']
+                                if verbose:
+                                    print "Duration: %s" % duration
+                                    print "-" * scores
+                else:
+                    gotAnswer = True
+                    gotXML = True
+                        
+        if gotAnswer and gotXML:
+            break
             
     return duration
 
