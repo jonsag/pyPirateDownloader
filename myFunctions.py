@@ -264,8 +264,9 @@ def getDuration(stream, verbose):
     gotXML = False
     noFFmpeg = False
     
-    print "-" * scores
-    print "Probing for duration of stream..."    
+    if verbose:
+        print "-" * scores
+        print "Probing for duration of stream..."    
     cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
     if verbose:
         print "Command: %s\n" % cmd
@@ -313,7 +314,8 @@ def getDuration(stream, verbose):
             break
         
     print "Duration: %s" % duration
-    print "-" * scores
+    if verbose:
+        print "-" * scores
     
     return duration
 
