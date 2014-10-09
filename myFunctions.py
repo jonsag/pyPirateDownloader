@@ -282,6 +282,8 @@ def getDuration(stream, verbose):
                 noFFmpeg = True
                 break
             else:
+                if verbose:
+                    print "Got an answer"
                 output, error = process.communicate()
                 gotAnswer = True
                 
