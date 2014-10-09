@@ -4,7 +4,8 @@
 
 import getopt, sys, os
 
-from myFunctions import parseXml, onError, inFilePart, getVideos
+from myFunctions import *
+import cmd
 
 url = ""
 inFile = ""
@@ -47,8 +48,8 @@ if not url and not inFile:
 
 if url and not name:
     onError(5, 5)
-elif name and not url:
-    onError(6, 6)
+#elif name and not url:
+#    onError(6, 6)
 
 if url:
     downloads = parseXml(url, name, setQuality, keepOld, verbose)
@@ -62,9 +63,12 @@ if not listOnly:
         infoDownloaded = ""
         print "\nCould not find any streams to download"
 else:
+    infoDownloaded = ""
     print "\nListing only"
     print "------------------------------------------------------------------------------------"
-    infoDownloaded = ""
+    if name:
+        bashFile = open("%s.sh" % name, "w")
+        bashFile.write("#!/bin/bash\n\n")
     if downloads:
         print "These files would have been downloaded:"
         for line in downloads:
@@ -78,6 +82,20 @@ else:
             else:
                 print "No subtitles found"
             print "Duration: %s" % line['duration']
+            if name:
+                if line['address'].startswith("http"):
+                    cmd =  ffmpegDownloadCommand(line, verbose)
+                    bashFile.write("%s\n\n" % cmd)
+                elif line['address'].startswith("rtmpe"):
+                    cmd = rtmpdumpDownloadCommand(line, verbose)
+                    bashFile.write("%s\n\n" % cmd)
+                if line['subs']:
+                    cmd = wgetDownloadCommand(line, verbose)
+                    bashFile.write("%s\n\n" % cmd)
+        if name:
+            bashFile.close()
+            st = os.stat("%s.sh" % name)
+            os.chmod("%s.sh" % name, st.st_mode | stat.S_IEXEC)
     else:
         print "Could not find anything that would have been downloaded"
 

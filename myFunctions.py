@@ -46,10 +46,10 @@ def onError(errorCode, extra):
         print "%s is not a file" % extra
         sys.exit(errorCode)
     elif errorCode == 5:
-        print "Option -u also requires setting option -n"
+        print "Option -u also requires setting option -o"
         usage(errorCode)
     elif errorCode == 6:
-        print "Option -n also requires setting option -u"
+        print "Option -o also requires setting option -u"
         usage(errorCode)
     elif errorCode == 7:
         print "Two urls in a row. Second should be a file name"
@@ -111,8 +111,16 @@ def parseXml(url, name, setQuality, keepOld, verbose):
     parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXml, url)
     print "\n\nGetting streams for %s" % parseUrl
     print "-" * scores
-    ppXml= urllib2.urlopen(parseUrl)
-    ppXmlString= ppXml.read()
+    
+    while True:
+        ppXml= urllib2.urlopen(parseUrl)
+        try:
+            ppXmlString= ppXml.read()
+        except:
+            print "*** Did not receive a valid XML. Trying again..."
+        break
+        
+    
 
     xmlRoot = ET.fromstring(ppXmlString)
 
@@ -209,18 +217,21 @@ def getDuration(stream, verbose):
     if verbose:
         print "Command: %s\n" % cmd
     args = shlex.split(cmd)
-    process = Popen(args, stdout = PIPE, stderr= PIPE)
-    output, error = process.communicate()
-        
-    xmlRoot = ET.fromstring(output)
-    for xmlChild in xmlRoot:
-        if 'duration' in xmlChild.attrib:
-            duration = xmlChild.attrib['duration']
-            if verbose:
-                print "Duration: %s" % duration
-                print "-" * scores
-        else:
-            duration = 0
+    try:
+        process = Popen(args, stdout = PIPE, stderr= PIPE)
+        output, error = process.communicate()
+        xmlRoot = ET.fromstring(output)
+        for xmlChild in xmlRoot:
+            if 'duration' in xmlChild.attrib:
+                duration = xmlChild.attrib['duration']
+                if verbose:
+                    print "Duration: %s" % duration
+                    print "-" * scores
+            else:
+                duration = 0
+    except OSError as e:
+        print "*** %s: Probably you are missing ffmpeg" % e
+        duration = 0
             
     return duration
 
@@ -250,6 +261,46 @@ def runProcess(args, verbose):
         print output
     return process
 
+def ffmpegDownloadCommand(line, verbose):
+    if verbose:
+        print "Composing download command..."
+    cmd = (
+           "ffmpeg -i %s"
+           " -acodec copy -vcodec copy -absf aac_adtstoasc"
+           " '%s.%s'"
+           % (line['address'],
+              line['name'].rstrip(), line['suffix'])
+           )
+    return cmd
+
+def rtmpdumpDownloadCommand(line, verbose):
+    if verbose:
+        print "Composing download command..."
+    part1 = line['address'].partition(' playpath=')
+    part2 = part1[2].partition(' swfVfy=1 swfUrl=')
+    cmd = (
+           "rtmpdump -o '%s.%s'"
+           " -r %s"
+           " -y %s"
+           " -W %s"
+           % (line['name'].rstrip(), line['suffix'],
+              part1[0],
+              part2[0],
+              part2[2])
+           )
+    return cmd
+
+def wgetDownloadCommand(line, verbose):
+    if verbose:
+        print "Composing download command..."
+    cmd = (
+           "wget -O '%s.srt'"
+           " %s"
+           % (line['name'].rstrip(),
+              line['subs'])
+           )
+    return cmd
+    
 def getVideos(downloads, keepOld, verbose):
     print "\nStarting downloads"
     print "-" * scores
@@ -266,8 +317,7 @@ def getVideos(downloads, keepOld, verbose):
                     else:
                         print "Deleting it"
                         os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
-                cmd = "ffmpeg -i %s -acodec copy -vcodec copy -absf aac_adtstoasc '%s.%s'" % (line['address'],
-                                                                                            line['name'].rstrip(), line['suffix'])
+                cmd =  ffmpegDownloadCommand(line, verbose)
                 if verbose:
                     print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
@@ -283,16 +333,11 @@ def getVideos(downloads, keepOld, verbose):
 
         elif line['address'].startswith("rtmpe"):
             while True:
-                part1 = line['address'].partition(' playpath=')
-                part2 = part1[2].partition(' swfVfy=1 swfUrl=')
                 print "Downloading video...\n"
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
                     os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
-                cmd = "rtmpdump -o '%s.%s' -r %s -y %s -W %s" % (line['name'].rstrip(), line['suffix'],
-                                                               part1[0],
-                                                               part2[0],
-                                                               part2[2])
+                cmd = rtmpdumpDownloadCommand(line, verbose)
                 if verbose:
                     print "Command: %s\n" % cmd                
                     args = shlex.split(cmd)
@@ -309,7 +354,7 @@ def getVideos(downloads, keepOld, verbose):
             while True:
                 print "-" * scores
                 print "Downloading subtitles...\n"
-                cmd = "wget -O '%s.srt' %s" % (line['name'].rstrip(), line['subs'])
+                cmd = wgetDownloadCommand(line, verbose)
                 if verbose:
                     print "Command: %s\n" % cmd                
                 args = shlex.split(cmd)
