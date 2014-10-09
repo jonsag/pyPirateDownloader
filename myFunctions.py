@@ -296,6 +296,7 @@ def getDuration(stream, verbose):
             else:
                 if verbose:
                     print "Downloaded a valid XML"
+                    print xmlRoot
                 gotXML = True
                 
                 for xmlChild in xmlRoot:
@@ -304,6 +305,9 @@ def getDuration(stream, verbose):
                         if verbose:
                             print "Duration: %s" % duration
                             print "-" * scores
+                    else:
+                        print "Could not find a duration in XML"
+                        print "-" * scores
         else:
             gotAnswer = True
             gotXML = True
@@ -406,7 +410,7 @@ def getVideos(downloads, keepOld, verbose):
                         os.rename("%s.%s" % (line['name'].rstrip(), line['suffix']),
                                   "%s.%s.old" % (line['name'].rstrip(), line['suffix']))
                     else:
-                        print "Deleting it"
+                        print "Deleting it\n"
                         os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
                 cmd =  ffmpegDownloadCommand(line, verbose)
                 process = runProcess(cmd, verbose)
@@ -429,7 +433,7 @@ def getVideos(downloads, keepOld, verbose):
                         os.rename("%s.%s" % (line['name'].rstrip(), line['suffix']),
                                   "%s.%s.old" % (line['name'].rstrip(), line['suffix']))
                     else:
-                        print "Deleting it"
+                        print "Deleting it\n"
                         os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
                 cmd = rtmpdumpDownloadCommand(line, verbose)
                 process = runProcess(cmd, verbose)
