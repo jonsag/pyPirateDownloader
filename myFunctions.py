@@ -331,14 +331,23 @@ def checkDurations(line, verbose):
 
 def runProcess(cmd, verbose):
     if verbose:
-        print "Command: %s\n" % cmd                
+        print "Command: %s\n" % cmd
+                        
     args = shlex.split(cmd)
-    process = Popen(args, stdout = PIPE)
     while True:
-        output = process.stdout.readline()
-        if not output:
+        try:
+            process = Popen(args, stdout = PIPE)
+            while True:
+                output = process.stdout.readline()
+                if not output:
+                    break
+                print output
+        except:
+            print "Failed downloading\nTrying again... "
+            sleep(waitTime)
+        else:
             break
-        print output
+            
     return process
 
 def ffmpegDownloadCommand(line, verbose):
