@@ -52,7 +52,7 @@ if url and not name:
 #    onError(6, 6)
 
 if url:
-    downloads = parseXml(url, name, setQuality, keepOld, verbose)
+    downloads = parseXML(url, name, setQuality, keepOld, verbose)
 elif inFile:
     downloads = inFilePart(inFile, setQuality, keepOld, verbose)
 
