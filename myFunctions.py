@@ -288,9 +288,10 @@ def getDuration(stream, verbose):
                 gotAnswer = True
                 break
                 
+        xmlString= output.read()
         if not noFFmpeg:
             try:
-                xmlRoot = ET.fromstring(output)
+                xmlRoot = ET.fromstring(xmlString)
             except:
                 print "*** Did not receive a valid XML. Trying again..."
             else:
