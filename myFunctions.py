@@ -143,9 +143,10 @@ def parseXML(url, name, setQuality, keepOld, verbose):
                     print "Got answer"
                 gotAnswer = True
                 break
-        
+            
+        piratePlayXMLString= piratePlayXML.read()
         try:
-            piratePlayXMLString= piratePlayXML.read()
+            xmlRoot = ET.fromstring(piratePlayXMLString)
         except:
             print "*** Did not receive a valid XML. Trying again..."
         else:
@@ -155,8 +156,6 @@ def parseXML(url, name, setQuality, keepOld, verbose):
             
         if gotAnswer and gotXML:
             break
-    
-    xmlRoot = ET.fromstring(piratePlayXMLString)
 
     for xmlChild in xmlRoot:
 
@@ -288,12 +287,9 @@ def getDuration(stream, verbose):
                 gotAnswer = True
                 break
                 
-        print "--------------------------------------------\n%s\n--------------------------------" % output
-        xmlString= output.read()
-        print "--------------------------------------------\n%s\n--------------------------------" % xmlString
         if not noFFmpeg:
             try:
-                xmlRoot = ET.fromstring(xmlString)
+                xmlRoot = ET.fromstring(output)
             except:
                 print "*** Did not receive a valid XML. Trying again..."
             else:
