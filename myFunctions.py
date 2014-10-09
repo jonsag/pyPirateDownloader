@@ -288,7 +288,9 @@ def getDuration(stream, verbose):
                 gotAnswer = True
                 break
                 
+        print "--------------------------------------------\n%s\n--------------------------------" % output
         xmlString= output.read()
+        print "--------------------------------------------\n%s\n--------------------------------" % xmlString
         if not noFFmpeg:
             try:
                 xmlRoot = ET.fromstring(xmlString)
