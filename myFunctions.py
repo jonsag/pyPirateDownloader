@@ -309,6 +309,7 @@ def getDuration(stream, verbose):
                 if not duration and verbose:
                     print "Could not find duration in XML"
         else:
+            print "    Can not detect duration"
             gotAnswer = True
             gotXML = True
                         
