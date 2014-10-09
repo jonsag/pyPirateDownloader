@@ -419,7 +419,9 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "-" * scores
                     print "Finished downloading video"
-                    if checkDurations(line, verbose) and os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
+                    if (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and 
+                        checkDurations(line, verbose)
+                        ):
                         setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                         break
 
@@ -442,7 +444,9 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "-" * scores
                     print "Finished downloading video"
-                    if checkDurations(line, verbose)  and os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
+                    if (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and
+                        checkDurations(line, verbose)
+                        ):
                         setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                         break
 
