@@ -415,7 +415,7 @@ def fileExists(fileName, suffix, keep, verbose):
         print "%s.%s already exists" % (fileName, suffix)
         if keep:
             while True:
-                number =+ 1
+                number += 1
                 print ("Renaming it to %s.%s.old%s"
                        % (fileName, suffix, number))
                 if os.path.isfile("%s.%s.old%s" % (fileName, suffix, number)):
