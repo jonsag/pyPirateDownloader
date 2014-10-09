@@ -264,9 +264,8 @@ def getDuration(stream, verbose):
     gotXML = False
     noFFmpeg = False
     
-    if verbose:
-        print "-" * scores
-        print "Probing for duration of stream..."    
+    print "-" * scores
+    print "Probing for duration of stream..."    
     cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
     if verbose:
         print "Command: %s\n" % cmd
@@ -303,8 +302,7 @@ def getDuration(stream, verbose):
                     if 'duration' in xmlChild.attrib:
                         duration = xmlChild.attrib['duration']
                         if verbose:
-                            print "Duration: %s" % duration
-                            print "-" * scores
+                            print "Found duration in XML"
                             
                 if not duration and verbose:
                     print "Could not find duration in XML"
@@ -315,7 +313,10 @@ def getDuration(stream, verbose):
                         
         if gotAnswer and gotXML:
             break
-            
+        
+    print "Duration: %s" % duration
+    print "-" * scores
+    
     return duration
 
 def checkDurations(line, verbose):
