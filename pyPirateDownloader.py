@@ -81,7 +81,7 @@ else:
                 print "Subtitles address: %s" % line['subs']
             else:
                 print "No subtitles found"
-            print "Duration: %s" % line['duration']
+            print "Duration: %s s" % line['duration']
             if name:
                 if line['address'].startswith("http"):
                     cmd =  ffmpegDownloadCommand(line, verbose)

@@ -118,7 +118,10 @@ def parseXml(url, name, setQuality, keepOld, verbose):
             ppXmlString= ppXml.read()
         except:
             print "*** Did not receive a valid XML. Trying again..."
-        break
+        else:
+            if verbose:
+                print "Downloaded a valid XML"
+            break
         
     
 
@@ -177,25 +180,41 @@ def parseXml(url, name, setQuality, keepOld, verbose):
         
         if quality == "null":
             streamDuration = getDuration(videoStream, verbose)
-            downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
-                              'name': name, 'quality': quality, 'duration': streamDuration})
+            downloads.append({'address': videoStream,
+                              'suffix': suffixHint,
+                              'subs': subtitles,
+                              'name': name,
+                              'quality': quality,
+                              'duration': streamDuration})
             print "Added %s to download list" % quality
         else:                                
             if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
                 streamDuration = getDuration(videoStream, verbose)
-                downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
-                                  'name': name, 'quality': quality, 'duration': streamDuration})
+                downloads.append({'address': videoStream,
+                                  'suffix': suffixHint,
+                                  'subs': subtitles,
+                                  'name': name,
+                                  'quality': quality,
+                                  'duration': streamDuration})
                 print "Added %s to download list" % quality
             elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
                 streamDuration = getDuration(videoStream, verbose)
-                downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
-                                  'name': name, 'quality': quality, 'duration': streamDuration})
+                downloads.append({'address': videoStream,
+                                  'suffix': suffixHint,
+                                  'subs': subtitles,
+                                  'name': name,
+                                  'quality': quality,
+                                  'duration': streamDuration})
                 print "Added %s to download list" % quality
             elif setQuality:
                 if setQuality == vidBitRate or setQuality == vidWidth:
                     streamDuration = getDuration(videoStream, verbose)
-                    downloads.append({'address': videoStream, 'suffix': suffixHint, 'subs': subtitles,
-                                      'name': name, 'quality': quality, 'duration': streamDuration})
+                    downloads.append({'address': videoStream,
+                                      'suffix': suffixHint,
+                                      'subs': subtitles,
+                                      'name': name,
+                                      'quality': quality,
+                                      'duration': streamDuration})
                     print "Added %s to download list" % quality     
                     
     return downloads
@@ -249,10 +268,12 @@ def checkDurations(line, verbose):
         durationsMatch = False
         print "Durations does not match"
         print "Will try to download again"
-            
     return durationsMatch
 
-def runProcess(args, verbose):
+def runProcess(cmd, verbose):
+    if verbose:
+        print "Command: %s\n" % cmd                
+    args = shlex.split(cmd)
     process = Popen(args, stdout = PIPE)
     while True:
         output = process.stdout.readline()
@@ -312,16 +333,15 @@ def getVideos(downloads, keepOld, verbose):
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
                     print "%s.%s already exists" % (line['name'].rstrip(), line['suffix'])
                     if keepOld:
-                        print "Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
-                        os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
+                        print ("Renaming it to %s.%s.old"
+                               % (line['name'].rstrip(), line['suffix']))
+                        os.rename("%s.%s" % (line['name'].rstrip(), line['suffix']),
+                                  "%s.%s.old" % (line['name'].rstrip(), line['suffix']))
                     else:
                         print "Deleting it"
                         os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
                 cmd =  ffmpegDownloadCommand(line, verbose)
-                if verbose:
-                    print "Command: %s\n" % cmd                
-                args = shlex.split(cmd)
-                process = runProcess(args, verbose)
+                process = runProcess(cmd, verbose)
                 if process.returncode:
                     print "Failed to download video, trying again..."
                 else:
@@ -335,13 +355,17 @@ def getVideos(downloads, keepOld, verbose):
             while True:
                 print "Downloading video...\n"
                 if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix']) ):
-                    print "%s.%s already exist. Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'], line['name'].rstrip(), line['suffix'] )
-                    os.rename( "%s.%s" % (line['name'].rstrip(), line['suffix']), "%s.%s.old" % (line['name'].rstrip(), line['suffix']) )
+                    print "%s.%s already exist." % (line['name'].rstrip(), line['suffix'])
+                    if keepOld:
+                        print "Renaming it to %s.%s.old" % (line['name'].rstrip(), line['suffix'])
+                        os.rename("%s.%s" % (line['name'].rstrip(), line['suffix']),
+                                  "%s.%s.old" % (line['name'].rstrip(), line['suffix']))
+                    else:
+                        print "Deleting it"
+                        os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
                 cmd = rtmpdumpDownloadCommand(line, verbose)
-                if verbose:
-                    print "Command: %s\n" % cmd                
-                    args = shlex.split(cmd)
-                    process = runProcess(args, verbose)
+                process = runProcess(cmd, verbose)
+                if process.returncode:
                     print "Failed to download video, trying again..."
                 else:
                     print "-" * scores
@@ -355,10 +379,7 @@ def getVideos(downloads, keepOld, verbose):
                 print "-" * scores
                 print "Downloading subtitles...\n"
                 cmd = wgetDownloadCommand(line, verbose)
-                if verbose:
-                    print "Command: %s\n" % cmd                
-                args = shlex.split(cmd)
-                process = runProcess(args, verbose)
+                process = runProcess(cmd, verbose)
                 if process.returncode:
                     print "Failed to download subtitles, trying again..."
                 else:
