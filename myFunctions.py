@@ -286,6 +286,7 @@ def getDuration(stream, verbose):
                 gotAnswer = True
                 break
                 
+
         if not noFFmpeg:
             try:
                 xmlRoot = ET.fromstring(output)
@@ -294,16 +295,13 @@ def getDuration(stream, verbose):
             else:
                 if verbose:
                     print "Downloaded a valid XML"
-                    for xmlChild in xmlRoot:
-                        print xmlChild
-                gotXML = True
-                
                 for xmlChild in xmlRoot:
                     if 'duration' in xmlChild.attrib:
                         duration = xmlChild.attrib['duration']
                         if verbose:
                             print "Found duration in XML"
-                            
+                        gotXML = True
+                           
                 if not duration and verbose:
                     print "Could not find duration in XML"
         else:
