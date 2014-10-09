@@ -419,8 +419,8 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "-" * scores
                     print "Finished downloading video"
-                    setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
-                    if checkDurations(line, verbose):
+                    if checkDurations(line, verbose) and os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
+                        setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                         break
 
         elif line['address'].startswith("rtmpe"):
@@ -442,8 +442,8 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "-" * scores
                     print "Finished downloading video"
-                    setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
-                    if checkDurations(line, verbose):
+                    if checkDurations(line, verbose)  and os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
+                        setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                         break
 
         if line['subs']:
@@ -457,8 +457,9 @@ def getVideos(downloads, keepOld, verbose):
                 else:
                     print "-" * scores
                     print "Finished downloading subtitles"
-                    setPerms("%s.srt" % line['name'].rstrip(), verbose)
-                    break
+                    if os.path.isfile("%s.srt" % line['name'].rstrip()):
+                        setPerms("%s.srt" % line['name'].rstrip(), verbose)
+                        break
 
         print "-" * scores
         print "Getting file info..."
