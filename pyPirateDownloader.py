@@ -10,6 +10,7 @@ import cmd
 url = ""
 inFile = ""
 name = ""
+bashOutFile = ""
 setQuality = ""
 listOnly = False
 verbose = False
@@ -17,7 +18,8 @@ keepOld = False
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:q:lkv' , ['url=', 'file=', 'outName=', 'quality=', '--list', '--keepold', '--verbose'])
+    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:b:q:lkv' ,
+                                 ['url=', 'file=', 'outfile=', 'bashfile=', 'quality=', '--list', '--keepold', '--verbose'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -32,8 +34,10 @@ for option, argument in myopts:
         inFile = argument
         if not os.path.isfile(inFile):
             onError(4, inFile)
-    elif option in ('-o', '--outName'):
+    elif option in ('-o', '--outfile'):
         name = argument
+    elif option in ('-b', '--bashfile'):
+        bashOutFile = argument
     elif option in ('-q', '--quality'):
         setQuality = int(argument)
     elif option in ('-l', '--list'):
@@ -66,8 +70,8 @@ else:
     infoDownloaded = ""
     print "\nListing only"
     print "------------------------------------------------------------------------------------"
-    if name:
-        bashFile = open("%s.sh" % name, "w")
+    if bashOutFile:
+        bashFile = open("%s.sh" % bashOutFile, "w")
         bashFile.write("#!/bin/bash\n\n")
     if downloads:
         print "These files would have been downloaded:"
@@ -82,7 +86,7 @@ else:
             else:
                 print "No subtitles found"
             print "Duration: %s s" % line['duration']
-            if name:
+            if bashOutFile:
                 if line['address'].startswith("http"):
                     cmd =  ffmpegDownloadCommand(line, verbose)
                     bashFile.write("%s\n\n" % cmd)
@@ -92,7 +96,7 @@ else:
                 if line['subs']:
                     cmd = wgetDownloadCommand(line, verbose)
                     bashFile.write("%s\n\n" % cmd)
-        if name:
+        if bashOutFile:
             bashFile.close()
             st = os.stat("%s.sh" % name)
             os.chmod("%s.sh" % name, st.st_mode | stat.S_IEXEC)
