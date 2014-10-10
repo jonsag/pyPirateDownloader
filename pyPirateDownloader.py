@@ -55,6 +55,14 @@ if url and not name:
 #elif name and not url:
 #    onError(6, 6)
 
+if name: # check for quote and double quote in out file name
+    if name != name.replace("'", ""):
+        print "Print removing quote (') in out file name..."
+        name = name.replace("'", "")
+    if name != name.replace('"', ''):
+        print 'Print removing double quote (") in out file name...'
+        name = name.replace('"', '')
+        
 if url:
     downloads = parseXML(url, name, setQuality, keepOld, verbose)
 elif inFile:
