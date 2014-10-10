@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import getopt, sys, os
+import getopt, sys, os, stat
 
 from myFunctions import *
 import cmd
