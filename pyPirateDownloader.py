@@ -98,8 +98,8 @@ else:
                     bashFile.write("%s\n\n" % cmd)
         if bashOutFile:
             bashFile.close()
-            st = os.stat("%s.sh" % name)
-            os.chmod("%s.sh" % name, st.st_mode | stat.S_IEXEC)
+            st = os.stat("%s.sh" % bashOutFile)
+            os.chmod("%s.sh" % bashOutFile, st.st_mode | stat.S_IEXEC)
     else:
         print "Could not find anything that would have been downloaded"
 
