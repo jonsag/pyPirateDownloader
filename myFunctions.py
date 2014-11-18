@@ -8,6 +8,7 @@ from subprocess import Popen, PIPE
 from time import sleep
 
 import xml.etree.ElementTree as ET
+from Crypto.Util.number import size
 
 config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__))) # read config file
@@ -79,7 +80,7 @@ def usage(exitCode):
 
     sys.exit(exitCode)
     
-def inFilePart(inFile, setQuality, keepOld, verbose):
+def inFilePart(inFile, setQuality, verbose):
     url = ""
     name = ""
 
@@ -99,7 +100,7 @@ def inFilePart(inFile, setQuality, keepOld, verbose):
         if name and not url:
             onError(9, 9)
         elif url and name:
-            downloads = parseXML(url, name, setQuality, keepOld, verbose)
+            downloads = parseXML(url, name, setQuality, verbose)
             url = ""
             name = ""
 
@@ -108,7 +109,7 @@ def inFilePart(inFile, setQuality, keepOld, verbose):
         
     return downloads
 
-def parseXML(url, name, setQuality, keepOld, verbose):
+def parseXML(url, name, setQuality, verbose):
     vidBitRate = 0
     vidWidth = 0
     
@@ -286,7 +287,6 @@ def getDuration(stream, verbose):
                 output, error = process.communicate()
                 gotAnswer = True
                 break
-                
 
         if not noFFmpeg:
             try:
@@ -408,12 +408,15 @@ def getDownloadCommands(line, verbose):
         
     return videoCmd, subCmd
         
-def fileExists(fileName, suffix, keep, verbose):
+def fileExists(fileName, suffix, keep, skip, verbose):
     number = 0
+    exists = True
     
     if os.path.isfile("%s.%s" % (fileName, suffix)):
         print "%s.%s already exists" % (fileName, suffix)
-        if keep:
+        if skip:
+            print "Skipping"
+        elif keep:
             while True:
                 number += 1
                 print ("Renaming it to %s.%s.old%s"
@@ -423,12 +426,16 @@ def fileExists(fileName, suffix, keep, verbose):
                 else:
                     os.rename("%s.%s" % (fileName, suffix),
                               "%s.%s.old%s" % (fileName, suffix, number))
+                    exists = False
                     break
         else:
             print "Deleting it\n"
             os.remove("%s.%s" % (fileName, suffix))
+            exists = False
+            
+    return exists
     
-def getVideos(downloads, keepOld, verbose):
+def getVideos(downloads, keepOld, skipExisting, verbose):
     print "\nStarting downloads"
     print "-" * scores
     for line in downloads:
@@ -437,41 +444,41 @@ def getVideos(downloads, keepOld, verbose):
 
         while True:
             print "Downloading video %s.%s ...\n" % (line['name'].rstrip(), line['suffix'])
-            fileExists(line['name'].rstrip(), line['suffix'], keepOld, verbose)
-            process = runProcess(videoCmd, verbose)
-            if process.returncode:
-                print "-" * scores
-                print "Failed to download video, trying again..."
-            else:
-                if (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and 
-                    checkDurations(line, verbose)
-                    ):
-                    print "-" * scores
-                    print "Finished downloading video"
-                    setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
-                    break
-                else:
+            if fileExists(line['name'].rstrip(), line['suffix'], keepOld, skipExisting, verbose):
+                process = runProcess(videoCmd, verbose)
+                if process.returncode:
                     print "-" * scores
                     print "Failed to download video, trying again..."
+                else:
+                    if (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and 
+                        checkDurations(line, verbose)
+                        ):
+                        print "-" * scores
+                        print "Finished downloading video"
+                        setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
+                        break
+                    else:
+                        print "-" * scores
+                        print "Failed to download video, trying again..."
 
         if subCmd:
             while True:
                 print "-" * scores
                 print "Downloading subtitles %s.srt ...\n" % line['name'].rstrip()
-                fileExists(line['name'].rstrip(), "srt", keepOld, verbose)
-                process = runProcess(subCmd, verbose)
-                if process.returncode:
-                    print "-" * scores
-                    print "Failed to download subtitles, trying again..."
-                else:
-                    if os.path.isfile("%s.srt" % line['name'].rstrip()):
+                if fileExists(line['name'].rstrip(), "srt", keepOld, skipExisting, verbose):
+                    process = runProcess(subCmd, verbose)
+                    if process.returncode:
                         print "-" * scores
-                        print "Finished downloading subtitles"
-                        setPerms("%s.srt" % line['name'].rstrip(), verbose)
-                        break
+                        print "Failed to download subtitles, trying again..."
                     else:
-                        print "-" * scores
-                        print "Finished downloading subtitles"
+                        if os.path.isfile("%s.srt" % line['name'].rstrip()):
+                            print "-" * scores
+                            print "Finished downloading subtitles"
+                            setPerms("%s.srt" % line['name'].rstrip(), verbose)
+                            break
+                        else:
+                            print "-" * scores
+                            print "Finished downloading subtitles"
 
         print "-" * scores
         print "Getting file info..."

@@ -15,11 +15,20 @@ setQuality = ""
 listOnly = False
 verbose = False
 keepOld = False
+skipExisting = False
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:b:q:lkv' ,
-                                 ['url=', 'file=', 'outfile=', 'bashfile=', 'quality=', '--list', '--keepold', '--verbose'])
+    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:b:q:lksv' ,
+                                 ['url=',
+                                  'file=',
+                                  'outfile=',
+                                  'bashfile=',
+                                  'quality=',
+                                  'list',
+                                  'keepold',
+                                  'skipexisting'
+                                  'verbose'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -44,6 +53,8 @@ for option, argument in myopts:
         listOnly = True
     elif option in ('-k', '--keepold'):
         keepOld = True
+    elif option in ('-s', '--skipexisting'):
+        skipExisting = True
     elif option in ('-v', '--verbose'):
         verbose = True    
 
@@ -57,20 +68,20 @@ if url and not name:
 
 if name: # check for quote and double quote in out file name
     if name != name.replace("'", ""):
-        print "Print removing quote (') in out file name..."
         name = name.replace("'", "")
+        print "Removed quotes (') in out file name"
     if name != name.replace('"', ''):
-        print 'Print removing double quote (") in out file name...'
         name = name.replace('"', '')
+        print 'Removed double quotes (") in out file name'
         
 if url:
-    downloads = parseXML(url, name, setQuality, keepOld, verbose)
+    downloads = parseXML(url, name, setQuality, verbose)
 elif inFile:
-    downloads = inFilePart(inFile, setQuality, keepOld, verbose)
+    downloads = inFilePart(inFile, setQuality, verbose)
 
 if not listOnly:
     if downloads:
-        infoDownloaded = getVideos(downloads, keepOld, verbose)
+        infoDownloaded = getVideos(downloads, keepOld, skipExisting, verbose)
     else:
         infoDownloaded = ""
         print "\nCould not find any streams to download"
