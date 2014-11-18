@@ -461,6 +461,8 @@ def getVideos(downloads, keepOld, skipExisting, verbose):
                     else:
                         print "-" * scores
                         print "Failed to download video, trying again..."
+            else:
+                break
 
         if subCmd:
             while True:
@@ -480,6 +482,8 @@ def getVideos(downloads, keepOld, skipExisting, verbose):
                         else:
                             print "-" * scores
                             print "Finished downloading subtitles"
+                else:
+                    break
 
         print "-" * scores
         print "Getting file info..."
