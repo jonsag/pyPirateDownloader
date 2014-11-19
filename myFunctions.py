@@ -120,7 +120,7 @@ def parseXML(url, name, setQuality, verbose):
     if verbose:
         print "Parsing the response from pirateplay.se API..."
     parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXML, url)
-    print "\n\nGetting streams for %s" % parseUrl
+    print "\nGetting streams for %s" % parseUrl
     print "-" * scores
     
     while True:
@@ -440,7 +440,8 @@ def getVideos(downloads, keepOld, skipExisting, verbose):
     print "\nStarting downloads"
     print "-" * scores
     for line in downloads:
-        
+        print
+        print "-" * scores
         videoCmd, subCmd = getDownloadCommands(line, verbose)
 
         while True:
@@ -485,8 +486,7 @@ def getVideos(downloads, keepOld, skipExisting, verbose):
                 else:
                     break
 
-        print "-" * scores
-        print "Getting file info..."
+        print "\nGetting file info..."
                     
         fileSize = getInfo(line, '--Inform="General;%FileSize%"', verbose)
         fileSizeMeasure = getInfo(line, '--Inform="General;%FileSize/String%"', verbose)
@@ -540,6 +540,9 @@ def getVideos(downloads, keepOld, skipExisting, verbose):
                                'subName': "%s.srt" % line['name'].rstrip(),
                                'subSize': subSize,
                                'subLines': subLines})
+        
+        print "-" * scores
+        print
 
     return infoDownloaded
 
