@@ -70,6 +70,9 @@ if url and not name:
 #elif name and not url:
 #    onError(6, 6)
 
+if reDownload and keepOld:
+    onError(11, 11)
+
 if name: # check for quote and double quote in out file name
     if name != name.replace("'", ""):
         name = name.replace("'", "")

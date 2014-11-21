@@ -30,8 +30,10 @@ scores = int(config.get('decoration', 'scores'))
 group = config.get('perms', 'group')
 mask = int(config.get('perms', 'mask'))
 
-ffprobePath = config.get('encoder', 'ffprobePath')
-ffmpegPath = config.get('encoder', 'ffmpegPath') 
+ffprobePath = config.get('ffmpeg', 'ffprobePath')
+ffmpegPath = config.get('ffmpeg', 'ffmpegPath') 
+
+rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions') 
 
 uid = os.getuid()
 gid = grp.getgrnam(group).gr_gid
@@ -70,6 +72,9 @@ def onError(errorCode, extra):
         sys.exit(errorCode)
     elif errorCode == 10:
         print extra
+        sys.exit(errorCode)
+    elif errorCode == 11:
+        print "You can't select both --keepold (-k) and --redownload (-r)"
         sys.exit(errorCode)
 
 def usage(exitCode):
@@ -389,10 +394,12 @@ def rtmpdumpDownloadCommand(line, verbose):
            " -r %s"
            " -y %s"
            " -W %s"
+           " %s"
            % (line['name'].rstrip(), line['suffix'],
               part1[0],
               part2[0],
-              part2[2])
+              part2[2],
+              rtmpdumpOptions)
            )
     if verbose:
         print "rtmpdump command: %s" % cmd
