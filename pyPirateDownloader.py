@@ -16,10 +16,11 @@ listOnly = False
 verbose = False
 keepOld = False
 skipExisting = False
+checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:b:q:lksv' ,
+    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:b:q:lksnv' ,
                                  ['url=',
                                   'file=',
                                   'outfile=',
@@ -27,7 +28,8 @@ try:
                                   'quality=',
                                   'list',
                                   'keepold',
-                                  'skipexisting'
+                                  'skipexisting',
+                                  'noduration',
                                   'verbose'])
 
 except getopt.GetoptError as e:
@@ -55,6 +57,8 @@ for option, argument in myopts:
         keepOld = True
     elif option in ('-s', '--skipexisting'):
         skipExisting = True
+    elif option in ('-n', '--noduration'):
+        checkDuration = False
     elif option in ('-v', '--verbose'):
         verbose = True    
 
@@ -75,13 +79,13 @@ if name: # check for quote and double quote in out file name
         print 'Removed double quotes (") in out file name'
         
 if url:
-    downloads = parseXML(url, name, setQuality, verbose)
+    downloads = parseXML(url, name, setQuality, checkDuration, verbose)
 elif inFile:
-    downloads = inFilePart(inFile, setQuality, verbose)
+    downloads = inFilePart(inFile, setQuality, checkDuration, verbose)
 
 if not listOnly:
     if downloads:
-        infoDownloaded = getVideos(downloads, keepOld, skipExisting, verbose)
+        infoDownloaded = getVideos(downloads, keepOld, skipExisting, checkDuration, verbose)
     else:
         infoDownloaded = ""
         print "\nCould not find any streams to download"

@@ -84,7 +84,7 @@ def usage(exitCode):
 
     sys.exit(exitCode)
     
-def inFilePart(inFile, setQuality, verbose):
+def inFilePart(inFile, setQuality, checkDuration, verbose):
     url = ""
     name = ""
 
@@ -104,7 +104,7 @@ def inFilePart(inFile, setQuality, verbose):
         if name and not url:
             onError(9, 9)
         elif url and name:
-            downloads = parseXML(url, name, setQuality, verbose)
+            downloads = parseXML(url, name, setQuality, checkDuration, verbose)
             url = ""
             name = ""
 
@@ -113,7 +113,7 @@ def inFilePart(inFile, setQuality, verbose):
         
     return downloads
 
-def parseXML(url, name, setQuality, verbose):
+def parseXML(url, name, setQuality, checkDuration, verbose):
     vidBitRate = 0
     vidWidth = 0
     
@@ -214,7 +214,7 @@ def parseXML(url, name, setQuality, verbose):
             vidWidth = int(vidRes[0])
         
         if quality == "null":
-            streamDuration = getDuration(videoStream, verbose)
+            streamDuration = getDuration(videoStream, checkDuration, verbose)
             downloads.append({'address': videoStream,
                               'suffix': suffixHint,
                               'subs': subtitles,
@@ -224,7 +224,7 @@ def parseXML(url, name, setQuality, verbose):
             print "Added %s to download list" % quality
         else:                                
             if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
-                streamDuration = getDuration(videoStream, verbose)
+                streamDuration = getDuration(videoStream, checkDuration, verbose)
                 downloads.append({'address': videoStream,
                                   'suffix': suffixHint,
                                   'subs': subtitles,
@@ -233,7 +233,7 @@ def parseXML(url, name, setQuality, verbose):
                                   'duration': streamDuration})
                 print "Added %s to download list" % quality
             elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
-                streamDuration = getDuration(videoStream, verbose)
+                streamDuration = getDuration(videoStream, checkDuration, verbose)
                 downloads.append({'address': videoStream,
                                   'suffix': suffixHint,
                                   'subs': subtitles,
@@ -243,7 +243,7 @@ def parseXML(url, name, setQuality, verbose):
                 print "Added %s to download list" % quality
             elif setQuality:
                 if setQuality == vidBitRate or setQuality == vidWidth:
-                    streamDuration = getDuration(videoStream, verbose)
+                    streamDuration = getDuration(videoStream, checkDuration, verbose)
                     downloads.append({'address': videoStream,
                                       'suffix': suffixHint,
                                       'subs': subtitles,
@@ -263,64 +263,69 @@ def setPerms(myFile, verbose):
     os.chmod(myFile, mask)
     #os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
 
-def getDuration(stream, verbose):
+def getDuration(stream, checkDuration, verbose):
     duration = 0
     gotAnswer = False
     gotXML = False
     noFFmpeg = False
     
-    if verbose:
-        print "-" * scores
-        print "Probing for duration of stream..."    
-    cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobePath, stream)
-    if verbose:
-        print "Command: %s\n" % cmd
-    args = shlex.split(cmd)
+    if  checkDuration:
+        if verbose:
+            print "-" * scores
+            print "Probing for duration of stream..."    
+        cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobePath, stream)
+        if verbose:
+            print "Command: %s\n" % cmd
+        args = shlex.split(cmd)
     
-    while True:
         while True:
-            try:
-                process = Popen(args, stdout = PIPE, stderr= PIPE)
-            except OSError as e:
-                print "*** %s\n    You are probably missing ffmpeg\n" % e
-                noFFmpeg = True
-                break
-            else:
-                if verbose:
-                    print "Got an answer"
-                output, error = process.communicate()
-                gotAnswer = True
-                break
+            while True:
+                try:
+                    process = Popen(args, stdout = PIPE, stderr= PIPE)
+                except OSError as e:
+                    print "*** %s\n    You are probably missing ffmpeg\n" % e
+                    noFFmpeg = True
+                    break
+                else:
+                    if verbose:
+                        print "Got an answer"
+                    output, error = process.communicate()
+                    gotAnswer = True
+                    break
 
-        if not noFFmpeg:
-            try:
-                xmlRoot = ET.fromstring(output)
-            except:
-                print "*** Did not receive a valid XML. Trying again..."
-            else:
-                if verbose:
-                    print "Downloaded a valid XML"
-                for xmlChild in xmlRoot:
-                    if 'duration' in xmlChild.attrib:
-                        duration = xmlChild.attrib['duration']
-                        if verbose:
-                            print "Found duration in XML"
-                        gotXML = True
+            if not noFFmpeg:
+                try:
+                    xmlRoot = ET.fromstring(output)
+                except:
+                    print "*** Did not receive a valid XML. Trying again..."
+                else:
+                    if verbose:
+                        print "Downloaded a valid XML"
+                    for xmlChild in xmlRoot:
+                        if 'duration' in xmlChild.attrib:
+                            duration = xmlChild.attrib['duration']
+                            if verbose:
+                                print "Found duration in XML"
+                            gotXML = True
                            
-                if not duration and verbose:
-                    print "Could not find duration in XML"
-        else:
-            print "    Can not detect duration"
-            gotAnswer = True
-            gotXML = True
+                    if not duration and verbose:
+                        print "Could not find duration in XML"
+            else:
+                print "    Can not detect duration"
+                gotAnswer = True
+                gotXML = True
                         
-        if gotAnswer and gotXML:
-            break
+            if gotAnswer and gotXML:
+                break
         
-    print "Duration: %s" % duration
-    if verbose:
-        print "-" * scores
-    
+        print "Duration: %s" % duration
+        if verbose:
+            print "-" * scores
+            
+    else:
+        print "Duration check disabled"
+        duration = 0
+        
     return duration
 
 def checkDurations(line, verbose):
@@ -370,6 +375,8 @@ def ffmpegDownloadCommand(line, verbose):
               line['address'], 
               line['name'].rstrip(), line['suffix'])
            )
+    if verbose:
+        print "ffmpeg command: %s" % cmd
     return cmd
 
 def rtmpdumpDownloadCommand(line, verbose):
@@ -387,6 +394,8 @@ def rtmpdumpDownloadCommand(line, verbose):
               part2[0],
               part2[2])
            )
+    if verbose:
+        print "rtmpdump command: %s" % cmd
     return cmd
 
 def wgetDownloadCommand(line, verbose):
@@ -398,17 +407,24 @@ def wgetDownloadCommand(line, verbose):
            % (line['name'].rstrip(),
               line['subs'])
            )
+    if verbose:
+        print "wget command: %s" % cmd
     return cmd
 
 def getDownloadCommands(line, verbose):
     subCmd = ""
     
     if line['address'].startswith("http"):
+        if verbose:
+            print "This should be downlaoded with ffmpeg"
         videoCmd =  ffmpegDownloadCommand(line, verbose)
-    elif line['address'].startswith("rtmpe"):
+    elif line['address'].startswith("rtmp"):
+        print "This should be downloaded with rtmpdump"
         videoCmd = rtmpdumpDownloadCommand(line, verbose)
         
     if line['subs']:
+        if verbose:
+            print "This should be downloaded with wget"
         subCmd = wgetDownloadCommand(line, verbose)
         
     return videoCmd, subCmd
@@ -441,7 +457,7 @@ def fileExists(fileName, suffix, keep, skip, verbose):
             
     return exists
     
-def getVideos(downloads, keepOld, skipExisting, verbose):
+def getVideos(downloads, keepOld, skipExisting, checkDuration, verbose):
     print "\nStarting downloads"
     print "-" * scores
     for line in downloads:
@@ -458,10 +474,17 @@ def getVideos(downloads, keepOld, skipExisting, verbose):
                     print "Failed to download video, trying again..."
                 else:
                     if (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and 
-                        checkDurations(line, verbose)
+                        checkDurations(line, verbose) and checkDuration
                         ):
                         print "-" * scores
                         print "Finished downloading video"
+                        setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
+                        break
+                    elif (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and not 
+                          checkDuration
+                          ):
+                        print "-" * scores
+                        print "Finished downloading video, did not check duration"
                         setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                         break
                     else:
