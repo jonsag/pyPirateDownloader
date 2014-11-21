@@ -15,12 +15,12 @@ setQuality = ""
 listOnly = False
 verbose = False
 keepOld = False
-skipExisting = False
+skipExisting = True
 checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:b:q:lksnv' ,
+    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:b:q:lkrnv' ,
                                  ['url=',
                                   'file=',
                                   'outfile=',
@@ -28,7 +28,7 @@ try:
                                   'quality=',
                                   'list',
                                   'keepold',
-                                  'skipexisting',
+                                  'redownload',
                                   'noduration',
                                   'verbose'])
 
@@ -55,8 +55,8 @@ for option, argument in myopts:
         listOnly = True
     elif option in ('-k', '--keepold'):
         keepOld = True
-    elif option in ('-s', '--skipexisting'):
-        skipExisting = True
+    elif option in ('-r', '--redownload'):
+        skipExisting = False
     elif option in ('-n', '--noduration'):
         checkDuration = False
     elif option in ('-v', '--verbose'):

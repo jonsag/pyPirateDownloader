@@ -429,16 +429,16 @@ def getDownloadCommands(line, verbose):
         
     return videoCmd, subCmd
         
-def fileExists(fileName, suffix, keep, skip, verbose):
+def fileExists(fileName, suffix, keepOld, skipExisting, verbose):
     number = 0
     exists = True
     
     if os.path.isfile("%s.%s" % (fileName, suffix)):
         print "%s.%s already exists" % (fileName, suffix)
-        if skip:
+        if skipExisting:
             exists = False
             print "Skipping\n"
-        elif keep:
+        elif keepOld:
             while True:
                 number += 1
                 print ("Renaming it to %s.%s.old%s"
