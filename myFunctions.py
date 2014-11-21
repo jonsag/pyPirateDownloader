@@ -29,6 +29,10 @@ scores = int(config.get('decoration', 'scores'))
 
 group = config.get('perms', 'group')
 mask = int(config.get('perms', 'mask'))
+
+ffprobePath = config.get('encoder', 'ffprobePath')
+ffmpegPath = config.get('encoder', 'ffmpegPath') 
+
 uid = os.getuid()
 gid = grp.getgrnam(group).gr_gid
 
@@ -268,7 +272,7 @@ def getDuration(stream, verbose):
     if verbose:
         print "-" * scores
         print "Probing for duration of stream..."    
-    cmd = "ffprobe -loglevel error -show_format -show_streams %s -print_format xml" % stream
+    cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobepath, stream)
     if verbose:
         print "Command: %s\n" % cmd
     args = shlex.split(cmd)
@@ -359,10 +363,11 @@ def ffmpegDownloadCommand(line, verbose):
     if verbose:
         print "Composing download command..."
     cmd = (
-           "ffmpeg -i %s"
+           "%s -i %s"
            " -acodec copy -vcodec copy -absf aac_adtstoasc"
            " '%s.%s'"
-           % (line['address'],
+           % (ffmpegPath, 
+              line['address'], 
               line['name'].rstrip(), line['suffix'])
            )
     return cmd
