@@ -113,7 +113,7 @@ else:
                 if line['address'].startswith("http"):
                     cmd =  ffmpegDownloadCommand(line, verbose)
                     bashFile.write("%s\n\n" % cmd)
-                elif line['address'].startswith("rtmpe"):
+                elif line['address'].startswith("rtmp"):
                     cmd = rtmpdumpDownloadCommand(line, verbose)
                     bashFile.write("%s\n\n" % cmd)
                 if line['subs']:

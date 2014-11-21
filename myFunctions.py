@@ -473,18 +473,17 @@ def getVideos(downloads, keepOld, skipExisting, checkDuration, verbose):
                     print "-" * scores
                     print "Failed to download video, trying again..."
                 else:
+                    if checkDuration:
+                        durationOK = checkDurations(line, verbose)
+                    else:
+                        if verbose:
+                            print "Not checking duration"
+                        durationOK = True
                     if (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and 
-                        checkDurations(line, verbose) and checkDuration
+                        durationOK
                         ):
                         print "-" * scores
                         print "Finished downloading video"
-                        setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
-                        break
-                    elif (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and not 
-                          checkDuration
-                          ):
-                        print "-" * scores
-                        print "Finished downloading video, did not check duration"
                         setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                         break
                     else:
