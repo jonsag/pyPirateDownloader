@@ -429,13 +429,13 @@ def getDownloadCommands(line, verbose):
         
     return videoCmd, subCmd
         
-def fileExists(fileName, suffix, keepOld, skipExisting, verbose):
+def fileExists(fileName, suffix, keepOld, reDownload, verbose):
     number = 0
     exists = True
     
     if os.path.isfile("%s.%s" % (fileName, suffix)):
         print "%s.%s already exists" % (fileName, suffix)
-        if skipExisting:
+        if reDownload:
             exists = False
             print "Skipping\n"
         elif keepOld:
@@ -457,7 +457,7 @@ def fileExists(fileName, suffix, keepOld, skipExisting, verbose):
             
     return exists
     
-def getVideos(downloads, keepOld, skipExisting, checkDuration, verbose):
+def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
     print "\nStarting downloads"
     print "-" * scores
     for line in downloads:
@@ -467,7 +467,7 @@ def getVideos(downloads, keepOld, skipExisting, checkDuration, verbose):
 
         while True:
             print "Downloading video %s.%s ...\n" % (line['name'].rstrip(), line['suffix'])
-            if fileExists(line['name'].rstrip(), line['suffix'], keepOld, skipExisting, verbose):
+            if fileExists(line['name'].rstrip(), line['suffix'], keepOld, reDownload, verbose):
                 process = runProcess(videoCmd, verbose)
                 if process.returncode:
                     print "-" * scores
@@ -496,7 +496,7 @@ def getVideos(downloads, keepOld, skipExisting, checkDuration, verbose):
             while True:
                 print "-" * scores
                 print "Downloading subtitles %s.srt ...\n" % line['name'].rstrip()
-                if fileExists(line['name'].rstrip(), "srt", keepOld, skipExisting, verbose):
+                if fileExists(line['name'].rstrip(), "srt", keepOld, reDownload, verbose):
                     process = runProcess(subCmd, verbose)
                     if process.returncode:
                         print "-" * scores

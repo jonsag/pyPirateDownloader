@@ -15,7 +15,7 @@ setQuality = ""
 listOnly = False
 verbose = False
 keepOld = False
-skipExisting = True
+reDownload = False
 checkDuration = True
 
 ##### handle arguments #####
@@ -56,7 +56,7 @@ for option, argument in myopts:
     elif option in ('-k', '--keepold'):
         keepOld = True
     elif option in ('-r', '--redownload'):
-        skipExisting = False
+        reDownload = False
     elif option in ('-n', '--noduration'):
         checkDuration = False
     elif option in ('-v', '--verbose'):
@@ -85,7 +85,7 @@ elif inFile:
 
 if not listOnly:
     if downloads:
-        infoDownloaded = getVideos(downloads, keepOld, skipExisting, checkDuration, verbose)
+        infoDownloaded = getVideos(downloads, keepOld, reDownload, checkDuration, verbose)
     else:
         infoDownloaded = ""
         print "\nCould not find any streams to download"
