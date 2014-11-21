@@ -453,9 +453,8 @@ def startDownload(fileName, suffix, keepOld, reDownload, verbose):
                     doDownload = True
                     break
         else:
-            print "Deleting it\n"
-            os.remove("%s.%s" % (fileName, suffix))
-            doDownload = True
+            print "Keeping old file. No download\n"
+            doDownload = False
             
     return doDownload
     
