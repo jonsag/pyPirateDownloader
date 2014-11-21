@@ -429,15 +429,17 @@ def getDownloadCommands(line, verbose):
         
     return videoCmd, subCmd
         
-def fileExists(fileName, suffix, keepOld, reDownload, verbose):
+def startDownload(fileName, suffix, keepOld, reDownload, verbose):
     number = 0
-    exists = True
+    doDownload = True
     
     if os.path.isfile("%s.%s" % (fileName, suffix)):
         print "%s.%s already exists" % (fileName, suffix)
+        doDownload = False
         if reDownload:
-            exists = False
-            print "Skipping\n"
+            print "Will redownload\n"
+            os.remove("%s.%s" % (fileName, suffix))
+            doDownload = True
         elif keepOld:
             while True:
                 number += 1
@@ -448,14 +450,14 @@ def fileExists(fileName, suffix, keepOld, reDownload, verbose):
                 else:
                     os.rename("%s.%s" % (fileName, suffix),
                               "%s.%s.old%s" % (fileName, suffix, number))
-                    exists = False
+                    doDownload = True
                     break
         else:
             print "Deleting it\n"
             os.remove("%s.%s" % (fileName, suffix))
-            exists = False
+            doDownload = True
             
-    return exists
+    return doDownload
     
 def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
     print "\nStarting downloads"
@@ -467,7 +469,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
 
         while True:
             print "Downloading video %s.%s ...\n" % (line['name'].rstrip(), line['suffix'])
-            if fileExists(line['name'].rstrip(), line['suffix'], keepOld, reDownload, verbose):
+            if startDownload(line['name'].rstrip(), line['suffix'], keepOld, reDownload, verbose):
                 process = runProcess(videoCmd, verbose)
                 if process.returncode:
                     print "-" * scores
@@ -496,7 +498,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
             while True:
                 print "-" * scores
                 print "Downloading subtitles %s.srt ...\n" % line['name'].rstrip()
-                if fileExists(line['name'].rstrip(), "srt", keepOld, reDownload, verbose):
+                if startDownload(line['name'].rstrip(), "srt", keepOld, reDownload, verbose):
                     process = runProcess(subCmd, verbose)
                     if process.returncode:
                         print "-" * scores

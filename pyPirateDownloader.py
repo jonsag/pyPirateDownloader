@@ -56,7 +56,7 @@ for option, argument in myopts:
     elif option in ('-k', '--keepold'):
         keepOld = True
     elif option in ('-r', '--redownload'):
-        reDownload = False
+        reDownload = True
     elif option in ('-n', '--noduration'):
         checkDuration = False
     elif option in ('-v', '--verbose'):
