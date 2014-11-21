@@ -33,7 +33,7 @@ mask = int(config.get('perms', 'mask'))
 ffprobePath = config.get('ffmpeg', 'ffprobePath')
 ffmpegPath = config.get('ffmpeg', 'ffmpegPath') 
 
-rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions') 
+#rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions') 
 
 uid = os.getuid()
 gid = grp.getgrnam(group).gr_gid
@@ -389,6 +389,12 @@ def rtmpdumpDownloadCommand(line, verbose):
         print "Composing download command..."
     part1 = line['address'].partition(' playpath=')
     part2 = part1[2].partition(' swfVfy=1 swfUrl=')
+    
+    if "kanal5play" in part2[2]:
+        rtmpdumpOptions = "--live"
+    else:
+        rtmpdumpOptions = ""
+
     cmd = (
            "rtmpdump -o '%s.%s'"
            " -r %s"
