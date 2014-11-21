@@ -272,7 +272,7 @@ def getDuration(stream, verbose):
     if verbose:
         print "-" * scores
         print "Probing for duration of stream..."    
-    cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobepath, stream)
+    cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobePath, stream)
     if verbose:
         print "Command: %s\n" % cmd
     args = shlex.split(cmd)
