@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import getopt, sys, os, stat
+import getopt, sys, os
 
 from myFunctions import *
 import cmd
+from __builtin__ import True
 
 url = ""
 dlList = ""
@@ -13,6 +14,7 @@ name = ""
 bashOutFile = ""
 setQuality = ""
 convertTo = ""
+videoInFile = ""
 listOnly = False
 verbose = False
 keepOld = False
@@ -21,7 +23,7 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:l:o:b:q:c:lkrnv' ,
+    myopts, args = getopt.getopt(sys.argv[1:],'u:l:o:b:q:c:f:lkrnvh' ,
                                  ['url=',
                                   'list=',
                                   'outfile=',
@@ -54,7 +56,9 @@ for option, argument in myopts:
     elif option in ('-q', '--quality'):
         setQuality = int(argument)
     elif option in ('-c', '--convert'):
-        convertTo = argument
+        convertTo = argument.lower()
+    elif option in ('-f', '--file'):
+        videoInFile = argument
     elif option in ('-l', '--list'):
         listOnly = True
     elif option in ('-k', '--keepold'):
@@ -64,12 +68,14 @@ for option, argument in myopts:
     elif option in ('-n', '--noduration'):
         checkDuration = False
     elif option in ('-v', '--verbose'):
-        verbose = True    
-
-if not url and not dlList:
+        verbose = True
+    elif option in ('-h', '--help'):
+        usage(0)
+        
+if not url and not dlList and not convertTo:
     onError(3, 3)
 
-if url and not name:
+if url and not name and not convertTo:
     onError(5, 5)
 #elif name and not url:
 #    onError(6, 6)
@@ -87,84 +93,18 @@ if name: # check for quote and double quote in out file name
         
 if url and not convertTo:
     downloads = parseXML(url, name, setQuality, checkDuration, verbose)
+    finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
 elif dlList and not convertTo:
     downloads = dlListPart(dlList, setQuality, checkDuration, verbose)
-
-if not listOnly:
-    if downloads:
-        infoDownloaded = getVideos(downloads, keepOld, reDownload, checkDuration, verbose)
-        if convertTo:
-            convertDownloaded(convertTo, verbose)
+    finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
+elif convertTo:
+    if not videoInFile:
+        onError(12, 12)
+    elif not os.path.isfile(videoInFile):
+        onError(13, videoInFile)
+    elif os.path.islink(videoInFile):
+        onError(14, videoInFile)
     else:
-        infoDownloaded = ""
-        print "\nCould not find any streams to download"
-else:
-    infoDownloaded = ""
-    print "\nListing only"
-    print "------------------------------------------------------------------------------------"
-    if bashOutFile:
-        bashFile = open("%s.sh" % bashOutFile, "w")
-        bashFile.write("#!/bin/bash\n\n")
-    if downloads:
-        print "These files would have been downloaded:"
-        for line in downloads:
-            #print line
-            print "\nVideo name: %s.%s" % (line['name'].rstrip(), line['suffix'])
-            print "Video quality: %s" % line['quality']
-            print "Video address: %s" % line['address']
-            if line['subs']:
-                print "Subtitles name: %s.srt" % line['name'].rstrip()
-                print "Subtitles address: %s" % line['subs']
-            else:
-                print "No subtitles found"
-            print "Duration: %s s" % line['duration']
-            if bashOutFile:
-                if line['address'].startswith("http"):
-                    cmd =  ffmpegDownloadCommand(line, verbose)
-                    bashFile.write("%s\n\n" % cmd)
-                elif line['address'].startswith("rtmp"):
-                    cmd = rtmpdumpDownloadCommand(line, verbose)
-                    bashFile.write("%s\n\n" % cmd)
-                if line['subs']:
-                    cmd = wgetDownloadCommand(line, verbose)
-                    bashFile.write("%s\n\n" % cmd)
-        if bashOutFile:
-            bashFile.close()
-            st = os.stat("%s.sh" % bashOutFile)
-            os.chmod("%s.sh" % bashOutFile, st.st_mode | stat.S_IEXEC)
-    else:
-        print "Could not find anything that would have been downloaded"
+        convertVideo(videoInFile, convertTo, verbose)
 
-for line in infoDownloaded:
-    print "\nVideo: %s" % line['videoName']
-    print "-------------------------------------------------------------------------"
-    #print "File size: %s b" % line['fileSize']
-    print "File size: %s" % line['fileSizeMeasure']
-    #print "Duration: %s ms" % line['duration']
-    print "Duration: %s" % line['durationFormatted']
-    #print "Overall bit rate: %s bps" % line['overallBitRate']
-    print "Overall bit rate: %s" % line['overallBitRateMeasure']
 
-    print ''
-    #print "Video format: %s" % line['videoFormat']
-    #print "Video codec ID: %s" % line['videoCodecId']
-    #print "Video bit rate: %s bps" % line['videoBitRate']
-    #print "Video bit rate: %s" % line['videoBitRateMeasure']
-    print "Width: %s px" % line['width']
-    print "Height: %s px" % line['height']
-    print "Frame rate: %s fps" % line['frameRate']
-    #print "Frame count: %s" % line['frameCount']
-
-    #print ''
-    #print "Audio format: %s" % line['audioFormat']
-    #print "Audio codec ID: %s" % line['audioCodecId']
-    #print "Audio bit rate: %s bps" % line['audioBitRate']
-    #print "Audio bit rate: %s" % line['audioBitRateMeasure']
-
-    if line['subLines'] != 'na':
-        print "\nSubtitles: %s" % line['subName']
-        print "-------------------------------------------------------------------------"
-        print "File size: %s b" % line['subSize']
-        print "Number of lines: %s" % line['subLines']
-    else:
-        print "\nNo subtitles downloaded"

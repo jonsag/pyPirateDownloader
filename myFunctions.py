@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, sys, urllib2, re, os, shlex, grp
+import ConfigParser, sys, urllib2, re, os, shlex, grp, stat
 
 from subprocess import Popen, PIPE
 from time import sleep
 
 import xml.etree.ElementTree as ET
 from Crypto.Util.number import size
+#from pyPirateDownloader import convertTo
+#from pyPirateDownloader import bashOutFile
 
 config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__))) # read config file
@@ -31,7 +33,12 @@ group = config.get('perms', 'group')
 mask = int(config.get('perms', 'mask'))
 
 ffprobePath = config.get('ffmpeg', 'ffprobePath')
-ffmpegPath = config.get('ffmpeg', 'ffmpegPath') 
+ffmpegPath = config.get('ffmpeg', 'ffmpegPath')
+
+avprobePath = config.get('ffmpeg', 'avprobePath')
+avconvPath = config.get('ffmpeg', 'avconvPath')
+
+videoExtensions = (config.get('video','videoExtensions')).split(',') # load video extensions
 
 #rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions') 
 
@@ -76,16 +83,44 @@ def onError(errorCode, extra):
     elif errorCode == 11:
         print "You can't select both --keepold (-k) and --redownload (-r)"
         sys.exit(errorCode)
-
+    elif errorCode == 12:
+        print "You didn't set -f <video file>"
+        sys.exit(errorCode)
+    elif errorCode == 13:
+        print "%s does not exist" % extra
+        sys.exit(errorCode)
+    elif errorCode == 14:
+        print "%s is a link" % extra
+        sys.exit(errorCode)
+    elif errorCode == 15:
+        print "%s is probably not a video file" % extra
+        sys.exit(errorCode)
+    elif errorCode == 16:
+        print "You do not have either ffmpeg or avconv on the paths set in your config"
+        sys.exit(errorCode)
+    elif errorCode == 99:
+        print "%s" % extra
+        sys.exit(0)
+        
 def usage(exitCode):
     print "\nUsage:"
     print "-"  * scores
-    print "%s -a <url> -o <out name>" % sys.argv[0]
-    print "  OR"
-    print "%s -f <in file>" % sys.argv[0]
-    print "  OR"
-    print "%s -h" % sys.argv[0]
+    print "%s -u <url> -o <out name> [-c <out format>]" % sys.argv[0]
+    print "        Download <url> to <out name>"
+    print "        [Convert the downloads"
+    print "\n%s [url or list] -l [-b <bash file name>]" % sys.argv[0]
+    print "        List downloads only"
+    print "        [Create bash file to make downloads]"
+    print "\n%s -c <out format> -f <video file> " % sys.argv[0]
+    print "        Convert video file"
+    print "\n%s -h" % sys.argv[0]
     print "    Prints this"
+    print "\nOptions:"
+    print "-"  * scores
+    print "    -q <quality> set quality for download"
+    print "    -n don't check durations"
+    print "    -k keep temporary files and old downloads"
+    print "    -r re download even if file exists"
 
     sys.exit(exitCode)
     
@@ -348,7 +383,7 @@ def checkDurations(line, verbose):
         print "Durations does not match"
     return durationsMatch
 
-def runProcess(cmd, verbose):
+def runProcess(cmd, failMessage, verbose):
     if verbose:
         print "Command: %s\n" % cmd
                         
@@ -362,7 +397,7 @@ def runProcess(cmd, verbose):
                     break
                 print output
         except:
-            print "Failed downloading\nTrying again... "
+            print failMessage
             sleep(waitTime)
         else:
             break
@@ -444,7 +479,7 @@ def getDownloadCommands(line, verbose):
         
     return videoCmd, subCmd
         
-def startDownload(fileName, suffix, keepOld, reDownload, verbose):
+def continueWithProcess(fileName, suffix, keepOld, reDownload, firstMessage, secondMessage, verbose):
     number = 0
     doDownload = True
     
@@ -452,7 +487,7 @@ def startDownload(fileName, suffix, keepOld, reDownload, verbose):
         print "%s.%s already exists" % (fileName, suffix)
         doDownload = False
         if reDownload:
-            print "Will redownload\n"
+            print firstMessage
             os.remove("%s.%s" % (fileName, suffix))
             doDownload = True
         elif keepOld:
@@ -468,7 +503,7 @@ def startDownload(fileName, suffix, keepOld, reDownload, verbose):
                     doDownload = True
                     break
         else:
-            print "Keeping old file. No download\n"
+            print secondMessage
             doDownload = False
             
     return doDownload
@@ -483,8 +518,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
 
         while True:
             print "Downloading video %s.%s ...\n" % (line['name'].rstrip(), line['suffix'])
-            if startDownload(line['name'].rstrip(), line['suffix'], keepOld, reDownload, verbose):
-                process = runProcess(videoCmd, verbose)
+            if continueWithProcess(line['name'].rstrip(), line['suffix'], keepOld, reDownload,
+                                   "Will redownload\n", "Keeping old file. No download\n", verbose):
+                process = runProcess(videoCmd, "Failed downloading\nTrying again... ", verbose)
                 if process.returncode:
                     print "-" * scores
                     print "Failed to download video, trying again..."
@@ -512,8 +548,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
             while True:
                 print "-" * scores
                 print "Downloading subtitles %s.srt ...\n" % line['name'].rstrip()
-                if startDownload(line['name'].rstrip(), "srt", keepOld, reDownload, verbose):
-                    process = runProcess(subCmd, verbose)
+                if continueWithProcess(line['name'].rstrip(), "srt", keepOld, reDownload,
+                                       "Will redownload\n", "Keeping old file. No download\n", verbose):
+                    process = runProcess(subCmd, "Failed downloading\nTrying again... ", verbose)
                     if process.returncode:
                         print "-" * scores
                         print "Failed to download subtitles, trying again..."
@@ -598,6 +635,157 @@ def getInfo(line, argument, verbose):
     output, error = process.communicate()
     return output.rstrip()
 
-def convertDownloaded(convertTo, verbose):
+def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose):
+    if not listOnly:
+        if downloads:
+            infoDownloaded = getVideos(downloads, keepOld, reDownload, checkDuration, verbose)
+            if convertTo:
+                if verbose:
+                    print "--- Converting downloads"
+                convertDownloads(downloads, convertTo, verbose)
+        else:
+            infoDownloaded = ""
+            onError(99, "\nCould not find any streams to download")
+    else:
+        infoDownloaded = ""
+        print "\nListing only"
+        print "------------------------------------------------------------------------------------"
+        if bashOutFile:
+            bashFile = open("%s.sh" % bashOutFile, "w")
+            bashFile.write("#!/bin/bash\n\n")
+        if downloads:
+            print "These files would have been downloaded:"
+            for line in downloads:
+                #print line
+                print "\nVideo name: %s.%s" % (line['name'].rstrip(), line['suffix'])
+                print "Video quality: %s" % line['quality']
+                print "Video address: %s" % line['address']
+                if line['subs']:
+                    print "Subtitles name: %s.srt" % line['name'].rstrip()
+                    print "Subtitles address: %s" % line['subs']
+                else:
+                    print "No subtitles found"
+                print "Duration: %s s" % line['duration']
+                if bashOutFile:
+                    if line['address'].startswith("http"):
+                        cmd =  ffmpegDownloadCommand(line, verbose)
+                        bashFile.write("%s\n\n" % cmd)
+                    elif line['address'].startswith("rtmp"):
+                        cmd = rtmpdumpDownloadCommand(line, verbose)
+                        bashFile.write("%s\n\n" % cmd)
+                    if line['subs']:
+                        cmd = wgetDownloadCommand(line, verbose)
+                        bashFile.write("%s\n\n" % cmd)
+            if bashOutFile:
+                bashFile.close()
+                st = os.stat("%s.sh" % bashOutFile)
+                os.chmod("%s.sh" % bashOutFile, st.st_mode | stat.S_IEXEC)
+        else:
+            print "Could not find anything that would have been downloaded"
+
+    for line in infoDownloaded:
+        print "\nVideo: %s" % line['videoName']
+        print "-------------------------------------------------------------------------"
+        #print "File size: %s b" % line['fileSize']
+        print "File size: %s" % line['fileSizeMeasure']
+        #print "Duration: %s ms" % line['duration']
+        print "Duration: %s" % line['durationFormatted']
+        #print "Overall bit rate: %s bps" % line['overallBitRate']
+        print "Overall bit rate: %s" % line['overallBitRateMeasure']
+
+        print ''
+        #print "Video format: %s" % line['videoFormat']
+        #print "Video codec ID: %s" % line['videoCodecId']
+        #print "Video bit rate: %s bps" % line['videoBitRate']
+        #print "Video bit rate: %s" % line['videoBitRateMeasure']
+        print "Width: %s px" % line['width']
+        print "Height: %s px" % line['height']
+        print "Frame rate: %s fps" % line['frameRate']
+        #print "Frame count: %s" % line['frameCount']
+
+        #print ''
+        #print "Audio format: %s" % line['audioFormat']
+        #print "Audio codec ID: %s" % line['audioCodecId']
+        #print "Audio bit rate: %s bps" % line['audioBitRate']
+        #print "Audio bit rate: %s" % line['audioBitRateMeasure']
+
+        if line['subLines'] != 'na':
+            print "\nSubtitles: %s" % line['subName']
+            print "-------------------------------------------------------------------------"
+            print "File size: %s b" % line['subSize']
+            print "Number of lines: %s" % line['subLines']
+        else:
+            print "\nNo subtitles downloaded"
+
+def getFFmpeg(verbose):
+    if verbose:
+        print "Checking for ffmpeg..."
+    if os.path.isfile(ffmpegPath):
+        if verbose:
+            print "Setting ffmpeg"
+        ffmpeg = ffmpegPath
+    elif os.path.isfile(avconvPath):
+        if verbose:
+            print "Setting avconv"
+        ffmpeg = avconvPath
+    else:
+        onError(16, 16)
+        
+    return ffmpeg
+
+def convertDownloads(downloads, convertTo, verbose):
     if verbose:
         print "Converting the downloads to %s format" % convertTo
+        
+def convertVideo(videoInFile, convertTo, verbose):
+    keepOld = False
+    reDownload = False
+    fileAccepted = False
+    
+    fileName, fileExtension = os.path.splitext(videoInFile)
+    fileExtension = fileExtension.lstrip(".")
+    
+    if verbose:
+        print "File name: %s" % fileName
+        print "File extension: %s" % fileExtension
+    
+    for extension in videoExtensions:
+        if extension == fileExtension.lower():
+            fileAccepted = True
+    if not fileAccepted:        
+        onError(15, videoInFile)
+    
+    if fileExtension.lower() == convertTo:
+        print "Same out format chosen as existing\nWill not convert"
+        
+    else:
+        if verbose:
+            print "Converting %s to %s format" % (videoInFile, convertTo)
+            print "Renaming %s to %s.bak" % (videoInFile, videoInFile)
+            os.rename(videoInFile, "%s.bak" % videoInFile)
+        
+        if fileExtension.lower() == "flv" and convertTo == "mp4":
+            ffmpeg = getFFmpeg(verbose)
+            cmd = ("%s"
+                   " -i %s -vcodec copy -acodec copy"
+                   " '%s.%s'"
+                   % (ffmpeg,
+                      "%s.bak" % videoInFile, 
+                      fileName, convertTo)
+                   )
+            while True:
+                print "Will convert"
+                if continueWithProcess(fileName, fileExtension, keepOld, reDownload,
+                                       "Will re convert\n", "Keeping old file\nNo converting\n", verbose):
+                    process = runProcess(cmd, "Failed converting\nTrying again... ", verbose)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
