@@ -8,10 +8,11 @@ from myFunctions import *
 import cmd
 
 url = ""
-inFile = ""
+dlList = ""
 name = ""
 bashOutFile = ""
 setQuality = ""
+convertTo = ""
 listOnly = False
 verbose = False
 keepOld = False
@@ -20,12 +21,13 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:f:o:b:q:lkrnv' ,
+    myopts, args = getopt.getopt(sys.argv[1:],'u:l:o:b:q:c:lkrnv' ,
                                  ['url=',
-                                  'file=',
+                                  'list=',
                                   'outfile=',
                                   'bashfile=',
                                   'quality=',
+                                  'convert=',
                                   'list',
                                   'keepold',
                                   'redownload',
@@ -41,16 +43,18 @@ if len(sys.argv) == 1: # no options passed
 for option, argument in myopts:
     if option in ('-u', '--url'):
         url = argument
-    elif option in ('-f', '--file'):
-        inFile = argument
-        if not os.path.isfile(inFile):
-            onError(4, inFile)
+    elif option in ('-l', '--list'):
+        dlList = argument
+        if not os.path.isfile(dlList):
+            onError(4, dlList)
     elif option in ('-o', '--outfile'):
         name = argument
     elif option in ('-b', '--bashfile'):
         bashOutFile = argument
     elif option in ('-q', '--quality'):
         setQuality = int(argument)
+    elif option in ('-c', '--convert'):
+        convertTo = argument
     elif option in ('-l', '--list'):
         listOnly = True
     elif option in ('-k', '--keepold'):
@@ -62,7 +66,7 @@ for option, argument in myopts:
     elif option in ('-v', '--verbose'):
         verbose = True    
 
-if not url and not inFile:
+if not url and not dlList:
     onError(3, 3)
 
 if url and not name:
@@ -81,14 +85,16 @@ if name: # check for quote and double quote in out file name
         name = name.replace('"', '')
         print 'Removed double quotes (") in out file name'
         
-if url:
+if url and not convertTo:
     downloads = parseXML(url, name, setQuality, checkDuration, verbose)
-elif inFile:
-    downloads = inFilePart(inFile, setQuality, checkDuration, verbose)
+elif dlList and not convertTo:
+    downloads = dlListPart(dlList, setQuality, checkDuration, verbose)
 
 if not listOnly:
     if downloads:
         infoDownloaded = getVideos(downloads, keepOld, reDownload, checkDuration, verbose)
+        if convertTo:
+            convertDownloaded(convertTo, verbose)
     else:
         infoDownloaded = ""
         print "\nCould not find any streams to download"

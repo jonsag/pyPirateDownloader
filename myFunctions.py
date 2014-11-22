@@ -89,11 +89,11 @@ def usage(exitCode):
 
     sys.exit(exitCode)
     
-def inFilePart(inFile, setQuality, checkDuration, verbose):
+def dlListPart(dlList, setQuality, checkDuration, verbose):
     url = ""
     name = ""
 
-    dlList = open(inFile)
+    dlList = open(dlList)
     lines = dlList.readlines()
     dlList.close()
 
@@ -391,6 +391,8 @@ def rtmpdumpDownloadCommand(line, verbose):
     part2 = part1[2].partition(' swfVfy=1 swfUrl=')
     
     if "kanal5play" in part2[2]:
+        if verbose:
+            print "This is from kanal5play\nAdding --live option to download command"
         rtmpdumpOptions = "--live"
     else:
         rtmpdumpOptions = ""
@@ -595,3 +597,7 @@ def getInfo(line, argument, verbose):
     process = Popen(args, stdout = PIPE, stderr= PIPE)
     output, error = process.communicate()
     return output.rstrip()
+
+def convertDownloaded(convertTo, verbose):
+    if verbose:
+        print "Converting the downloads to %s format" % convertTo
