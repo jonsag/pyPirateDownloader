@@ -9,7 +9,8 @@ from time import sleep
 
 import xml.etree.ElementTree as ET
 from Crypto.Util.number import size
-from pyPirateDownloader import reEncode
+
+#from pyPirateDownloader import reEncode
 #from pyPirateDownloader import convertTo
 #from pyPirateDownloader import bashOutFile
 
