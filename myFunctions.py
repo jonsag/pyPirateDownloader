@@ -9,6 +9,7 @@ from time import sleep
 
 import xml.etree.ElementTree as ET
 from Crypto.Util.number import size
+from pyPirateDownloader import reEncode
 #from pyPirateDownloader import convertTo
 #from pyPirateDownloader import bashOutFile
 
@@ -39,6 +40,8 @@ avprobePath = config.get('ffmpeg', 'avprobePath')
 avconvPath = config.get('ffmpeg', 'avconvPath')
 
 videoExtensions = (config.get('video','videoExtensions')).split(',') # load video extensions
+
+videoCodec = config.get('video', 'videoCodec')
 
 #rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions') 
 
@@ -105,10 +108,11 @@ def onError(errorCode, extra):
 def usage(exitCode):
     print "\nUsage:"
     print "-"  * scores
-    print "%s -u <url> -o <out name> [-c <out format>]" % sys.argv[0]
+    print "%s -u <url>|-l <download list> -o <out name> [-c <out format>]" % sys.argv[0]
     print "        Download <url> to <out name>"
+    print "        Download urls from list, save as next line in list says"
     print "        [Convert the downloads"
-    print "\n%s [url or list] -l [-b <bash file name>]" % sys.argv[0]
+    print "\n%s [url or download list] -s [-b <bash file name>]" % sys.argv[0]
     print "        List downloads only"
     print "        [Create bash file to make downloads]"
     print "\n%s -c <out format> -f <video file> " % sys.argv[0]
@@ -425,12 +429,12 @@ def rtmpdumpDownloadCommand(line, verbose):
     part1 = line['address'].partition(' playpath=')
     part2 = part1[2].partition(' swfVfy=1 swfUrl=')
     
-    if "kanal5play" in part2[2]:
-        if verbose:
-            print "This is from kanal5play\nAdding --live option to download command"
-        rtmpdumpOptions = "--live"
-    else:
-        rtmpdumpOptions = ""
+    #if "kanal5play" in part2[2]:
+    #    if verbose:
+    #        print "This is from kanal5play\nAdding --live option to download command"
+    #    rtmpdumpOptions = "--live"
+    #else:
+    rtmpdumpOptions = ""
 
     cmd = (
            "rtmpdump -o '%s.%s'"
@@ -737,7 +741,7 @@ def convertDownloads(downloads, convertTo, verbose):
     if verbose:
         print "Converting the downloads to %s format" % convertTo
         
-def convertVideo(videoInFile, convertTo, verbose):
+def convertVideo(videoInFile, convertTo, reEncode, verbose):
     keepOld = False
     reDownload = False
     fileAccepted = False
@@ -766,13 +770,26 @@ def convertVideo(videoInFile, convertTo, verbose):
         
         if fileExtension.lower() == "flv" and convertTo == "mp4":
             ffmpeg = getFFmpeg(verbose)
-            cmd = ("%s"
-                   " -i %s -vcodec copy -acodec copy"
-                   " '%s.%s'"
-                   % (ffmpeg,
-                      "%s.bak" % videoInFile, 
-                      fileName, convertTo)
-                   )
+            if reEncode:
+                if verbose:
+                    print "Reencoding video..."
+                cmd = ("%s"
+                       " -i %s"
+                       " -qscale 0 -ar 22050 -vcodec %s"
+                       " '%s.%s'"
+                       % (ffmpeg,
+                          "%s.bak" % videoInFile,
+                          videoCodec, 
+                          fileName, convertTo)
+                       )
+            else:
+                cmd = ("%s"
+                       " -i %s -vcodec copy -acodec copy"
+                       " '%s.%s'"
+                       % (ffmpeg,
+                          "%s.bak" % videoInFile, 
+                          fileName, convertTo)
+                       )
             while True:
                 print "Will convert"
                 if continueWithProcess(fileName, fileExtension, keepOld, reDownload,

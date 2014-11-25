@@ -15,6 +15,7 @@ bashOutFile = ""
 setQuality = ""
 convertTo = ""
 videoInFile = ""
+reEncode = False
 listOnly = False
 verbose = False
 keepOld = False
@@ -23,14 +24,16 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:l:o:b:q:c:f:lkrnvh' ,
+    myopts, args = getopt.getopt(sys.argv[1:],'u:l:o:b:q:c:f:rskrnvh' ,
                                  ['url=',
                                   'list=',
                                   'outfile=',
                                   'bashfile=',
                                   'quality=',
                                   'convert=',
-                                  'list',
+                                  'file=',
+                                  'reencode',
+                                  'show',
                                   'keepold',
                                   'redownload',
                                   'noduration',
@@ -59,7 +62,9 @@ for option, argument in myopts:
         convertTo = argument.lower()
     elif option in ('-f', '--file'):
         videoInFile = argument
-    elif option in ('-l', '--list'):
+    elif option in ('-r', '--reencode'):
+        reEncode = True
+    elif option in ('-s', '--show'):
         listOnly = True
     elif option in ('-k', '--keepold'):
         keepOld = True
@@ -105,6 +110,6 @@ elif convertTo:
     elif os.path.islink(videoInFile):
         onError(14, videoInFile)
     else:
-        convertVideo(videoInFile, convertTo, verbose)
+        convertVideo(videoInFile, convertTo, reEncode, verbose)
 
 
