@@ -430,12 +430,12 @@ def rtmpdumpDownloadCommand(line, verbose):
     part1 = line['address'].partition(' playpath=')
     part2 = part1[2].partition(' swfVfy=1 swfUrl=')
     
-    #if "kanal5play" in part2[2]:
-    #    if verbose:
-    #        print "This is from kanal5play\nAdding --live option to download command"
-    #    rtmpdumpOptions = "--live"
-    #else:
-    rtmpdumpOptions = ""
+    if "kanal5play" in part2[2]:
+        if verbose:
+            print "This is from kanal5play\nAdding --live option to download command"
+        rtmpdumpOptions = "--realtime"
+    else:
+        rtmpdumpOptions = ""
 
     cmd = (
            "rtmpdump -o '%s.%s'"
