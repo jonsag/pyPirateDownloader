@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, sys, urllib2, re, os, shlex, grp, stat
+import ConfigParser, sys, urllib2, re, os, shlex, grp, stat, datetime
 
 from subprocess import Popen, PIPE
 from time import sleep
@@ -363,7 +363,7 @@ def getDuration(stream, checkDuration, verbose):
             if gotAnswer and gotXML:
                 break
         
-        print "Duration: %s" % duration
+        print "Duration: %s (%s)" % (duration, str(datetime.timedelta(seconds = int(duration.rstrip("0").rstrip(".")))))
         if verbose:
             print "-" * scores
             
@@ -377,8 +377,8 @@ def checkDurations(line, verbose):
     print "-" * scores
     expectedDuration = int(str(line['duration']).rstrip("0").rstrip("."))
     downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
-    print "Expected duration: %d s" % expectedDuration
-    print "Downloaded duration: %d s" % downloadedDuration
+    print "Expected duration: %d s (%s)" % (expectedDuration, str(datetime.timedelta(seconds = expectedDuration)))
+    print "Downloaded duration: %d s (%s)" % (downloadedDuration, str(datetime.timedelta(seconds = downloadedDuration)))
         
     if downloadedDuration + 2 > expectedDuration and downloadedDuration - 2 < expectedDuration:
         durationsMatch = True
