@@ -45,16 +45,6 @@ except getopt.GetoptError as e:
 
 if len(sys.argv) == 1: # no options passed
     onError(2, 2)
-    
-printDefault("Default text")
-
-printInfo("Info text")
-    
-printWarning("Warning text")
-
-printError("Error text")
-
-sys.exit(0)
 
 for option, argument in myopts:
     if option in ('-u', '--url'):
@@ -102,10 +92,10 @@ if reDownload and keepOld:
 if name: # check for quote and double quote in out file name
     if name != name.replace("'", ""):
         name = name.replace("'", "")
-        print "Removed quotes (') in out file name"
+        printInfo("Removed quotes (') in out file name")
     if name != name.replace('"', ''):
         name = name.replace('"', '')
-        print 'Removed double quotes (") in out file name'
+        printInfo('Removed double quotes (") in out file name')
         
 if url and not convertTo:
     downloads = parseXML(url, name, setQuality, checkDuration, verbose)
