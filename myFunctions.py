@@ -414,12 +414,14 @@ def getffmpegPath(verbose):
     return ffmpeg
 
 def getDuration(stream, checkDuration, verbose):
-    duration = 0
+    duration = "0.000"
     gotAnswer = False
     gotXML = False
     noFFmpeg = False
+    trys = 0
     
     ffprobe = getffprobePath(verbose)
+    
     if not ffprobe or ffprobe == avprobePath:
         if verbose:
             printWarning("Disabling checking of duration")
@@ -428,24 +430,35 @@ def getDuration(stream, checkDuration, verbose):
     if  checkDuration:
         if verbose:
             printScores()
-            printInfo2("Probing for duration of stream...")    
+            printInfo2("Probing for duration of stream...")  
+              
         cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobe, stream)
+        
         if verbose:
             printInfo1("Command: %s\n" % cmd)
+            
         args = shlex.split(cmd)
     
         while True:
+            if trys > maxTrys:
+                printError("Giving up after % trys" % (trys -1))
+                printWarning("Setting duration to %s" % duration)
+                gotAnswer = True
+                gotXML = True
+                break
+            
             while True:
                 try:
                     process = Popen(args, stdout = PIPE, stderr= PIPE)
                 except OSError as e:
-                    printWarning("*** %s\n    You are probably missing ffmpeg\n" % e)
+                    printError("%s\nYou are probably missing ffmpeg" % e)
                     noFFmpeg = True
                     break
                 else:
                     if verbose:
                         printInfo1("Got an answer")
                     output, error = process.communicate()
+                    output = ""
                     gotAnswer = True
                     break
 
@@ -453,7 +466,8 @@ def getDuration(stream, checkDuration, verbose):
                 try:
                     xmlRoot = ET.fromstring(output)
                 except:
-                    printWarning("*** Did not receive a valid XML. Trying again...")
+                    printWarning("Did not receive a valid XML. Trying again...")
+                    trys += 1
                 else:
                     if verbose:
                         printInfo1("Downloaded a valid XML")
@@ -467,22 +481,23 @@ def getDuration(stream, checkDuration, verbose):
                     if not duration and verbose:
                         printWarning("Could not find duration in XML")
             else:
-                printWarning("    Can not detect duration")
+                printError("Can not detect duration")
+                printWarning("Setting duration to %s" % duration)
                 gotAnswer = True
                 gotXML = True
                         
             if gotAnswer and gotXML:
                 break
         
-        printInfo1("Duration: %s s (%s)" % (duration,
-                                           str(datetime.timedelta(seconds = int(duration.rstrip("0").rstrip("."))))))
         if verbose:
             printScores()
             
     else:
         printWarning("Duration check disabled")
-        duration = "0.000"
+        printWarning("Setting duration to %s" % duration)
         
+    printInfo1("Duration: %s s (%s)" % (duration, 
+                                        str(datetime.timedelta(seconds = int(duration.rstrip("0").rstrip("."))))))    
     return duration
 
 def checkDurations(line, verbose):
@@ -649,8 +664,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
         videoCmd, subCmd = getDownloadCommands(line, verbose)
 
         while True:
-            printInfo2("Downloading video %s.%s ...\n" % (line['name'].rstrip(), line['suffix']))
+            printInfo2("Downloading video %s.%s ..." % (line['name'].rstrip(), line['suffix']))
             printScores()
+                
             if continueWithProcess(line['name'].rstrip(), line['suffix'], keepOld, reDownload,
                                    "Will redownload\n", "Keeping old file. No download\n", verbose):
                 process = runProcess(videoCmd, "Failed downloading\nTrying again... ", verbose)
@@ -680,7 +696,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
         if subCmd:
             while True:
                 print
-                printInfo2("Downloading subtitles %s.srt ...\n" % line['name'].rstrip())
+                printInfo2("Downloading subtitles %s.srt ..." % line['name'].rstrip())
                 printScores()
                 if continueWithProcess(line['name'].rstrip(), "srt", keepOld, reDownload,
                                        "Will redownload\n", "Keeping old file. No download\n", verbose):
@@ -770,6 +786,7 @@ def getInfo(line, argument, verbose):
     return output.rstrip()
 
 def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose):
+    
     if not listOnly:
         if downloads:
             infoDownloaded = getVideos(downloads, keepOld, reDownload, checkDuration, verbose)

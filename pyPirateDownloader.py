@@ -25,7 +25,7 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:l:o:b:q:c:f:rskrnvh' ,
+    myopts, args = getopt.getopt(sys.argv[1:],'u:l:o:b:q:c:f:Rskrnvh' ,
                                  ['url=',
                                   'list=',
                                   'outfile=',
@@ -63,7 +63,7 @@ for option, argument in myopts:
         convertTo = argument.lower()
     elif option in ('-f', '--file'):
         videoInFile = argument
-    elif option in ('-r', '--reencode'):
+    elif option in ('-R', '--reencode'):
         reEncode = True
     elif option in ('-s', '--show'):
         listOnly = True
@@ -101,6 +101,7 @@ if name: # check for quote and double quote in out file name
         print
         
 if url and not convertTo:
+    
     downloads = parseXML(url, name, setQuality, checkDuration, verbose)
     finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
 elif dlList and not convertTo:
