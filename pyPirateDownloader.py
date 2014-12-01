@@ -90,12 +90,15 @@ if reDownload and keepOld:
     onError(11, 11)
 
 if name: # check for quote and double quote in out file name
+    print
     if name != name.replace("'", ""):
         name = name.replace("'", "")
-        printInfo("Removed quotes (') in out file name")
+        printWarning("Removed quotes (') in out file name")
+        print
     if name != name.replace('"', ''):
         name = name.replace('"', '')
-        printInfo('Removed double quotes (") in out file name')
+        printWarning('Removed double quotes (") in out file name')
+        print
         
 if url and not convertTo:
     downloads = parseXML(url, name, setQuality, checkDuration, verbose)
