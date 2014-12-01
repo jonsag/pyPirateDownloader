@@ -10,6 +10,9 @@ from time import sleep
 import xml.etree.ElementTree as ET
 from Crypto.Util.number import size
 
+from colorama import init, deinit
+from termcolor import colored
+
 #from pyPirateDownloader import reEncode
 #from pyPirateDownloader import convertTo
 #from pyPirateDownloader import bashOutFile
@@ -30,6 +33,9 @@ minVidWidth = int(config.get('quality', 'minVidWidth'))
 maxVidWidth = int(config.get('quality', 'maxVidWidth'))
 
 scores = int(config.get('decoration', 'scores'))
+defaultTextColor = config.get('decoration', 'defaultTextColor')
+defaultBackgroundColor = config.get('decoration', 'defaultBackgroundColor')
+defaultTextStyle = config.get('decoration', 'defaultTextStyle')
 
 group = config.get('perms', 'group')
 mask = int(config.get('perms', 'mask'))
@@ -128,6 +134,59 @@ def usage(exitCode):
     print "    -r re download even if file exists"
 
     sys.exit(exitCode)
+    
+def printDefault(text):
+    textColor = defaultTextColor
+    backgroundColor = defaultBackgroundColor
+    textStyle = "bold"
+    printMessage(text, textColor, backgroundColor, textStyle)
+    
+def printInfo(text):
+    textColor = "green"
+    backgroundColor = defaultBackgroundColor
+    textStyle = "bold"
+    printMessage(text, textColor, backgroundColor, textStyle)
+    
+def printWarning(text):
+    textColor = "yellow"
+    backgroundColor = defaultBackgroundColor
+    textStyle = "bold"
+    printMessage(text, textColor, backgroundColor, textStyle)
+    
+def printError(text):
+    textColor = "red"
+    backgroundColor = defaultBackgroundColor
+    textStyle = "bold"
+    printMessage(text, textColor, backgroundColor, textStyle)
+
+def printMessage(text, textColor, backgroundColor, textStyle):
+    init()
+    
+    if textColor == "default":        
+        if backgroundColor == "default":
+            if textStyle == "default":
+                print (colored(text))
+            else:
+                print (colored(text, attrs = [textStyle]))
+        else:
+            if textStyle == "default":
+                print (colored(text, "on_%s" % backgroundColor))
+            else:
+                print (colored(text, "on_%s" % backgroundColor, attrs = [textStyle]))
+    else:
+        if backgroundColor == "default":
+            if textStyle == "default":
+                print (colored(text, textColor.lower()))
+            else:
+                print (colored(text, textColor.lower(), attrs = [textStyle]))
+        else:
+            if textStyle == "default":
+                print (colored(text, textColor.lower(), "on_%s" % backgroundColor))
+            else:
+                print (colored(text, textColor.lower(), "on_%s" % backgroundColor, attrs = [textStyle]))
+        
+
+    deinit()
     
 def dlListPart(dlList, setQuality, checkDuration, verbose):
     url = ""
@@ -308,17 +367,59 @@ def setPerms(myFile, verbose):
     os.chmod(myFile, mask)
     #os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
 
+def getffprobePath(verbose):
+    if verbose:
+        print "Checking your ffprobe/avprobe installation..."
+    if os.path.isfile(ffprobePath):
+        if verbose:
+            print "Using ffprobe"
+        ffprobe = ffprobePath
+    elif os.path.isfile(avprobePath):
+        if verbose:
+            print "Using avprobe"
+        ffprobe = avprobePath
+    else:
+        if verbose:
+            print "You don't have either ffprobe or avprobe in your given paths"
+        ffprobe = ""
+        
+    return ffprobe
+
+def getffmpegPath(verbose):
+    if verbose:
+        print "Checking your ffmpeg/avconv installation..."
+    if os.path.isfile(ffmpegPath):
+        if verbose:
+            print "Using ffmpeg"
+        ffmpeg = ffmpegPath
+    elif os.path.isfile(avconvPath):
+        if verbose:
+            print "Using avconv"
+        ffmpeg = avconvPath
+    else:
+        if verbose:
+            print "You don't have either ffmpeg or avconv in your given paths"
+        ffmpeg = ""
+        
+    return ffmpeg
+
 def getDuration(stream, checkDuration, verbose):
     duration = 0
     gotAnswer = False
     gotXML = False
     noFFmpeg = False
     
+    ffprobe = getffprobePath(verbose)
+    if not ffprobe or ffprobe == avprobePath:
+        if verbose:
+            print "Disabling checking of duration"
+        checkDuration = False
+    
     if  checkDuration:
         if verbose:
             print "-" * scores
             print "Probing for duration of stream..."    
-        cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobePath, stream)
+        cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobe, stream)
         if verbose:
             print "Command: %s\n" % cmd
         args = shlex.split(cmd)
@@ -363,13 +464,13 @@ def getDuration(stream, checkDuration, verbose):
             if gotAnswer and gotXML:
                 break
         
-        print "Duration: %s (%s)" % (duration, str(datetime.timedelta(seconds = int(duration.rstrip("0").rstrip(".")))))
+        print "Duration: %s s (%s)" % (duration, str(datetime.timedelta(seconds = int(duration.rstrip("0").rstrip(".")))))
         if verbose:
             print "-" * scores
             
     else:
         print "Duration check disabled"
-        duration = 0
+        duration = "60.000"
         
     return duration
 
@@ -412,14 +513,30 @@ def runProcess(cmd, failMessage, verbose):
 def ffmpegDownloadCommand(line, verbose):
     if verbose:
         print "Composing download command..."
-    cmd = (
-           "%s -i %s"
-           " -acodec copy -vcodec copy -absf aac_adtstoasc"
-           " '%s.%s'"
-           % (ffmpegPath, 
-              line['address'], 
-              line['name'].rstrip(), line['suffix'])
-           )
+        
+    ffmpeg = getffmpegPath(verbose)
+    
+    if ffmpeg == ffmpegPath:
+        cmd = (
+               "%s -i %s"
+               " -acodec copy -vcodec copy -absf aac_adtstoasc"
+               " '%s.%s'"
+               % (ffmpeg, 
+                  line['address'], 
+                  line['name'].rstrip(), line['suffix'])
+               )
+    elif ffmpeg == avconvPath:
+        cmd = (
+               "%s -i %s"
+               " -acodec copy -vcodec copy"# -absf aac_adtstoasc"
+               " '%s.%s'"
+               % (ffmpeg, 
+                  line['address'], 
+                  line['name'].rstrip(), line['suffix'])
+               )
+    else:
+        onError(16, 16)
+    
     if verbose:
         print "ffmpeg command: %s" % cmd
     return cmd
@@ -530,7 +647,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                     print "-" * scores
                     print "Failed to download video, trying again..."
                 else:
-                    if checkDuration:
+                    if checkDuration and int(str(line['duration']).rstrip("0").rstrip(".")) > 0:
                         durationOK = checkDurations(line, verbose)
                     else:
                         if verbose:
@@ -722,22 +839,6 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         else:
             print "\nNo subtitles downloaded"
 
-def getFFmpeg(verbose):
-    if verbose:
-        print "Checking for ffmpeg..."
-    if os.path.isfile(ffmpegPath):
-        if verbose:
-            print "Setting ffmpeg"
-        ffmpeg = ffmpegPath
-    elif os.path.isfile(avconvPath):
-        if verbose:
-            print "Setting avconv"
-        ffmpeg = avconvPath
-    else:
-        onError(16, 16)
-        
-    return ffmpeg
-
 def convertDownloads(downloads, convertTo, verbose):
     if verbose:
         print "Converting the downloads to %s format" % convertTo
@@ -770,7 +871,7 @@ def convertVideo(videoInFile, convertTo, reEncode, verbose):
             os.rename(videoInFile, "%s.bak" % videoInFile)
         
         if fileExtension.lower() == "flv" and convertTo == "mp4":
-            ffmpeg = getFFmpeg(verbose)
+            ffmpeg = getffmpegPath(verbose)
             if reEncode:
                 if verbose:
                     print "Reencoding video..."

@@ -5,6 +5,7 @@
 import getopt, sys, os
 
 from myFunctions import *
+
 import cmd
 from __builtin__ import True
 
@@ -44,6 +45,16 @@ except getopt.GetoptError as e:
 
 if len(sys.argv) == 1: # no options passed
     onError(2, 2)
+    
+printDefault("Default text")
+
+printInfo("Info text")
+    
+printWarning("Warning text")
+
+printError("Error text")
+
+sys.exit(0)
 
 for option, argument in myopts:
     if option in ('-u', '--url'):
