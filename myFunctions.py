@@ -328,42 +328,54 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
         
         if quality == "null":
             streamDuration = getDuration(videoStream, checkDuration, verbose)
+            if subtitles:
+                subSize = getSubSize(subtitles, verbose)
             downloads.append({'address': videoStream,
                               'suffix': suffixHint,
                               'subs': subtitles,
                               'name': name,
                               'quality': quality,
-                              'duration': streamDuration})
-            printInfo1("Added %s to download list" % quality)
+                              'duration': streamDuration,
+                              'subSize': subSize})
+            printInfo2("Added %s to download list" % quality)
         else:                                
             if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
                 streamDuration = getDuration(videoStream, checkDuration, verbose)
+                if subtitles:
+                    subSize = getSubSize(subtitles, verbose)
                 downloads.append({'address': videoStream,
                                   'suffix': suffixHint,
                                   'subs': subtitles,
                                   'name': name,
                                   'quality': quality,
-                                  'duration': streamDuration})
-                printInfo1("Added %s to download list" % quality)
+                                  'duration': streamDuration,
+                                  'subSize': subSize})
+                printInfo2("Added %s to download list" % quality)
             elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
                 streamDuration = getDuration(videoStream, checkDuration, verbose)
+                if subtitles:
+                    subSize = getSubSize(subtitles, verbose)
                 downloads.append({'address': videoStream,
                                   'suffix': suffixHint,
                                   'subs': subtitles,
                                   'name': name,
                                   'quality': quality,
-                                  'duration': streamDuration})
-                printInfo1("Added %s to download list" % quality)
+                                  'duration': streamDuration,
+                                  'subSize': subSize})
+                printInfo2("Added %s to download list" % quality)
             elif setQuality:
                 if setQuality == vidBitRate or setQuality == vidWidth:
                     streamDuration = getDuration(videoStream, checkDuration, verbose)
+                    if subtitles:
+                        subSize = getSubSize(subtitles, verbose)
                     downloads.append({'address': videoStream,
                                       'suffix': suffixHint,
                                       'subs': subtitles,
                                       'name': name,
                                       'quality': quality,
-                                      'duration': streamDuration})
-                    printInfo1("Added %s to download list" % quality)     
+                                      'duration': streamDuration,
+                                      'subSize': subSize})
+                    printInfo2("Added %s to download list" % quality)     
                     
     return downloads
 
@@ -440,6 +452,7 @@ def getDuration(stream, checkDuration, verbose):
         args = shlex.split(cmd)
     
         while True:
+            trys += 1
             if trys > maxTrys:
                 printError("Giving up after % trys" % (trys -1))
                 printWarning("Setting duration to %s" % duration)
@@ -467,7 +480,6 @@ def getDuration(stream, checkDuration, verbose):
                     xmlRoot = ET.fromstring(output)
                 except:
                     printWarning("Did not receive a valid XML. Trying again...")
-                    trys += 1
                 else:
                     if verbose:
                         printInfo1("Downloaded a valid XML")
@@ -497,13 +509,49 @@ def getDuration(stream, checkDuration, verbose):
         printWarning("Setting duration to %s" % duration)
         
     printInfo1("Duration: %s s (%s)" % (duration, 
-                                        str(datetime.timedelta(seconds = int(duration.rstrip("0").rstrip("."))))))    
+                                        str(datetime.timedelta(seconds = int(duration.rstrip("0").rstrip("."))))))
+       
     return duration
+
+def getSubSize(subAddress, verbose):
+    subSize = "0"
+    trys = 0
+    
+    if verbose:
+        printInfo2("Probing size of subtitle file...")
+        
+    while True:
+        trys += 1
+        if trys > maxTrys:
+            printError("Giving up after % trys" % (trys -1))
+            printWarning("Setting subtile size to %s" % subSize)
+            gotAnswer = True
+            break
+            
+        while True:            
+            try:
+                sub = urllib2.urlopen(subAddress)
+            except:
+                printError("Undefined error")
+            else:
+                if verbose:
+                    printInfo1("Got an answer")
+                meta = sub.info()
+                subSize = meta.getheaders("Content-Length")[0]
+                gotAnswer = True
+                break
+        if gotAnswer:
+            break
+
+    printInfo1("Sub size: %s B" % subSize)
+    
+    return subSize
+
 
 def checkDurations(line, verbose):
     printScores()
     expectedDuration = int(str(line['duration']).rstrip("0").rstrip("."))
-    downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
+    downloadedDuration = int(str(line, '--Inform="General;%Duration%"', verbose)) / 1000
     printInfo1("Expected duration: %d s (%s)" % (expectedDuration, str(datetime.timedelta(seconds = expectedDuration))))
     printInfo1("Downloaded duration: %d s (%s)" % (downloadedDuration, str(datetime.timedelta(seconds = downloadedDuration))))
         
@@ -515,12 +563,32 @@ def checkDurations(line, verbose):
         printWarning("Durations does not match")
     return durationsMatch
 
+def checkFileSize(line, verbose):
+    printScores()
+    expectedFileSize = int(line['subSize'])
+    downloadedFileSize = os.path.getsize("%s.srt" % line['name'].rstrip())
+    printInfo1("Expected file size: %d B" % (expectedFileSize))
+    printInfo1("Downloaded file size: %d B" % (downloadedFileSize))
+        
+    if downloadedFileSize + 2 > expectedFileSize and downloadedFileSize - 2 < expectedFileSize:
+        FileSizesMatch = True
+        printInfo1("File sizes match")
+    else:
+        FileSizesMatch = False
+        printWarning("File sizes does not match")
+    return FileSizesMatch
+
 def runProcess(cmd, failMessage, verbose):
+    trys = 0
+    
     if verbose:
         printInfo1("Command: %s\n" % cmd)
                         
     args = shlex.split(cmd)
     while True:
+        if trys > maxTrys:
+            printError("Tried %s times\nSkipping..." % trys)
+            break
         try:
             process = Popen(args, stdout = PIPE)
             while True:
@@ -535,6 +603,18 @@ def runProcess(cmd, failMessage, verbose):
             break
             
     return process
+
+def downloadFile(address, outName, verbose):
+    if verbose:
+        printInfo2("Downloading file from %s and saving it as %s" % (address, outName))
+        
+    sourceFile = urllib2.urlopen(address)
+    targetFile = open(outName, 'wb')
+    targetFile.write(sourceFile.read())
+    targetFile.close()
+    
+    success = True
+    return success
 
 def ffmpegDownloadCommand(line, verbose):
     if verbose:
@@ -656,15 +736,40 @@ def continueWithProcess(fileName, suffix, keepOld, reDownload, firstMessage, sec
             doDownload = False
             
     return doDownload
+
+def numbering(number, verbose):
+    if number == 1:
+        text = "st"
+    elif number == 2:
+        text = "nd"
+    elif number == 3:
+        text = "rd"
+    else:
+        text = "th"
+        
+    return text
     
 def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
+    trys = 0
+    oldReDownload = reDownload
+    
     printInfo2("\nStarting downloads")
+    
     for line in downloads:
-        print
         videoCmd, subCmd = getDownloadCommands(line, verbose)
 
         while True:
+            trys += 1
+            if trys > maxTrys:
+                printError("Tried to download video %s times\nSkipping..." % (trys -1))
+                #printInfo2("Deleting the downloaded file")
+                #if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
+                #    os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
+                break
+            
+            print
             printInfo2("Downloading video %s.%s ..." % (line['name'].rstrip(), line['suffix']))
+            printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
             printScores()
                 
             if continueWithProcess(line['name'].rstrip(), line['suffix'], keepOld, reDownload,
@@ -672,47 +777,71 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 process = runProcess(videoCmd, "Failed downloading\nTrying again... ", verbose)
                 if process.returncode:
                     printScores()
-                    printError("Failed to download video, trying again...")
+                    printError("Failed to download video")
+                    printInfo2("Trying again...")
+                    reDownload = True
                 else:
                     if checkDuration and int(str(line['duration']).rstrip("0").rstrip(".")) > 0:
                         durationOK = checkDurations(line, verbose)
                     else:
                         if verbose:
                             printWarning("Not checking duration")
-                        durationOK = True
-                    if (os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and 
-                        durationOK
-                        ):
+                        durationOK = True 
+                    if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])) and durationOK:
                         printScores()
                         printInfo1("Finished downloading video")
                         setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
+                        reDownload = oldReDownload
                         break
                     else:
                         printScores()
-                        printError("Failed to download video, trying again...")
+                        printError("Failed to download video")
+                        printInfo2("Trying again...")
+                        reDownload = True
             else:
                 break
 
         if subCmd:
+            trys = 0
+            oldReDownload = reDownload
+            
             while True:
+                trys += 1
+                if trys > maxTrys:
+                    printError("Tried to download subtitles %s times\nSkipping..." % (trys -1))
+                    #printInfo2("Deleting the downloaded file")
+                    #if os.path.isfile("%s.%s" % (line['name'].rstrip(), "srt")):
+                    #    os.remove("%s.%s" % (line['name'].rstrip(), "srt"))
+                    break
+                
                 print
                 printInfo2("Downloading subtitles %s.srt ..." % line['name'].rstrip())
+                printInfo1("Try no' %s" % trys)
                 printScores()
+                
                 if continueWithProcess(line['name'].rstrip(), "srt", keepOld, reDownload,
                                        "Will redownload\n", "Keeping old file. No download\n", verbose):
-                    process = runProcess(subCmd, "Failed downloading\nTrying again... ", verbose)
-                    if process.returncode:
+                    #process = runProcess(subCmd, "Failed downloading\nTrying again... ", verbose)
+                    result = downloadFile(line['subs'], "%s.%s" % (line['name'].rstrip(), "srt"), verbose)
+                    #if process.returncode:
+                    if not result:
                         printScores()
-                        printError("Failed to download subtitles, trying again...")
+                        printError("Failed to download subtitles")
+                        printInfo2("Trying again...")
+                        reDownload = True
                     else:
-                        if os.path.isfile("%s.srt" % line['name'].rstrip()):
+                        fileSizeOK = checkFileSize(line, verbose)
+                        if os.path.isfile("%s.srt" % line['name'].rstrip()) and fileSizeOK:
                             printScores()
                             printInfo1("Finished downloading subtitles")
                             setPerms("%s.srt" % line['name'].rstrip(), verbose)
+                            reDownload = oldReDownload
                             break
                         else:
                             printScores()
-                            printInfo1("Finished downloading subtitles")
+                            printError("Failed to download subtitles")
+                            printInfo2("Trying again")
+                            reDownload = True
                 else:
                     break
 
@@ -863,7 +992,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         if line['subLines'] != 'na':
             printInfo1("\nSubtitles: %s" % line['subName'])
             printScores()
-            printInfo1("File size: %s b" % line['subSize'])
+            printInfo1("File size: %s B" % line['subSize'])
             printInfo1("Number of lines: %s" % line['subLines'])
         else:
             printWarning("\nNo subtitles downloaded")
