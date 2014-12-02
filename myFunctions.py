@@ -479,7 +479,6 @@ def getDuration(stream, checkDuration, verbose):
                     if verbose:
                         printInfo1("Got an answer")
                     output, error = process.communicate()
-                    output = ""
                     gotAnswer = True
                     break
 
@@ -559,7 +558,7 @@ def getSubSize(subAddress, verbose):
 def checkDurations(line, verbose):
     printScores()
     expectedDuration = int(str(line['duration']).rstrip("0").rstrip("."))
-    downloadedDuration = int(str(line, '--Inform="General;%Duration%"', verbose)) / 1000
+    downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
     printInfo1("Expected duration: %d s (%s)" % (expectedDuration, str(datetime.timedelta(seconds = expectedDuration))))
     printInfo1("Downloaded duration: %d s (%s)" % (downloadedDuration, str(datetime.timedelta(seconds = downloadedDuration))))
         
