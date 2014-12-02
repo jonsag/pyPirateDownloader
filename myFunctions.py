@@ -330,6 +330,8 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
             streamDuration = getDuration(videoStream, checkDuration, verbose)
             if subtitles:
                 subSize = getSubSize(subtitles, verbose)
+            else:
+                subSize = 0
             downloads.append({'address': videoStream,
                               'suffix': suffixHint,
                               'subs': subtitles,
@@ -343,6 +345,8 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
                 streamDuration = getDuration(videoStream, checkDuration, verbose)
                 if subtitles:
                     subSize = getSubSize(subtitles, verbose)
+                else:
+                    subSize = 0
                 downloads.append({'address': videoStream,
                                   'suffix': suffixHint,
                                   'subs': subtitles,
@@ -355,6 +359,8 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
                 streamDuration = getDuration(videoStream, checkDuration, verbose)
                 if subtitles:
                     subSize = getSubSize(subtitles, verbose)
+                else:
+                    subSize = 0
                 downloads.append({'address': videoStream,
                                   'suffix': suffixHint,
                                   'subs': subtitles,
@@ -368,6 +374,8 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
                     streamDuration = getDuration(videoStream, checkDuration, verbose)
                     if subtitles:
                         subSize = getSubSize(subtitles, verbose)
+                    else:
+                        subSize = 0
                     downloads.append({'address': videoStream,
                                       'suffix': suffixHint,
                                       'subs': subtitles,
