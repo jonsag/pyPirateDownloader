@@ -13,18 +13,18 @@ from Crypto.Util.number import size
 from colorama import init, deinit
 from termcolor import colored
 
-#from pyPirateDownloader import reEncode
-#from pyPirateDownloader import convertTo
-#from pyPirateDownloader import bashOutFile
+# from pyPirateDownloader import reEncode
+# from pyPirateDownloader import convertTo
+# from pyPirateDownloader import bashOutFile
 
 config = ConfigParser.ConfigParser()
-config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__))) # read config file
+config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__)))  # read config file
 
-apiBaseUrl = config.get('pirateplay','apiBaseUrl') # base url for pirateplay.se api
-getStreamsXML = config.get('pirateplay','getStreamsXML') # get streams from pirateplay.se using XML
-getStreamsJson = config.get('pirateplay','getStreamsJson') # get streams from pirateplay.se using json
-maxTrys = int(config.get('pirateplay','maxTrys'))
-waitTime = int(config.get('pirateplay','waitTime'))
+apiBaseUrl = config.get('pirateplay', 'apiBaseUrl')  # base url for pirateplay.se api
+getStreamsXML = config.get('pirateplay', 'getStreamsXML')  # get streams from pirateplay.se using XML
+getStreamsJson = config.get('pirateplay', 'getStreamsJson')  # get streams from pirateplay.se using json
+maxTrys = int(config.get('pirateplay', 'maxTrys'))
+waitTime = int(config.get('pirateplay', 'waitTime'))
 
 minVidBitRate = int(config.get('quality', 'minVidBitRate'))
 maxVidBitRate = int(config.get('quality', 'maxVidBitRate'))
@@ -46,11 +46,11 @@ ffmpegPath = config.get('ffmpeg', 'ffmpegPath')
 avprobePath = config.get('ffmpeg', 'avprobePath')
 avconvPath = config.get('ffmpeg', 'avconvPath')
 
-videoExtensions = (config.get('video','videoExtensions')).split(',') # load video extensions
+videoExtensions = (config.get('video', 'videoExtensions')).split(',')  # load video extensions
 
 videoCodec = config.get('video', 'videoCodec')
 
-#rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions') 
+# rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions') 
 
 uid = os.getuid()
 gid = grp.getgrnam(group).gr_gid
@@ -176,23 +176,23 @@ def printMessage(text, textColor, backgroundColor, textStyle):
             if textStyle == "default":
                 print (colored(text))
             else:
-                print (colored(text, attrs = [textStyle]))
+                print (colored(text, attrs=[textStyle]))
         else:
             if textStyle == "default":
                 print (colored(text, "on_%s" % backgroundColor))
             else:
-                print (colored(text, "on_%s" % backgroundColor, attrs = [textStyle]))
+                print (colored(text, "on_%s" % backgroundColor, attrs=[textStyle]))
     else:
         if backgroundColor == "default":
             if textStyle == "default":
                 print (colored(text, textColor.lower()))
             else:
-                print (colored(text, textColor.lower(), attrs = [textStyle]))
+                print (colored(text, textColor.lower(), attrs=[textStyle]))
         else:
             if textStyle == "default":
                 print (colored(text, textColor.lower(), "on_%s" % backgroundColor))
             else:
-                print (colored(text, textColor.lower(), "on_%s" % backgroundColor, attrs = [textStyle]))
+                print (colored(text, textColor.lower(), "on_%s" % backgroundColor, attrs=[textStyle]))
         
 
     deinit()
@@ -207,9 +207,9 @@ def dlListPart(dlList, setQuality, checkDuration, verbose):
 
     for line in lines:
         if len(line) > 1 and not line.startswith("#"):
-            if line.startswith("http") and not url: # line is a url and url is not set
+            if line.startswith("http") and not url:  # line is a url and url is not set
                 url = line
-            elif url and line.startswith("http"): # url is already set and line is a url
+            elif url and line.startswith("http"):  # url is already set and line is a url
                 onError(7, 7)
             else:
                 name = line
@@ -246,7 +246,7 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
             if trys > maxTrys:
                 onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
             try:
-                piratePlayXML= urllib2.urlopen(parseUrl)
+                piratePlayXML = urllib2.urlopen(parseUrl)
             except urllib2.HTTPError, e:
                 printWarning("HTTPError\n    %s\n    Trying again...\n" % str(e.code))
                 sleep(waitTime)
@@ -262,7 +262,7 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
                 gotAnswer = True
                 break
             
-        piratePlayXMLString= piratePlayXML.read()
+        piratePlayXMLString = piratePlayXML.read()
         try:
             xmlRoot = ET.fromstring(piratePlayXMLString)
         except:
@@ -320,9 +320,9 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
             if verbose:
                 printWarning("No video stated")
 
-        if "bps" in quality: # quality is probably bitrate: xxx kbps
+        if "bps" in quality:  # quality is probably bitrate: xxx kbps
             vidBitRate = int(re.sub("\D", "", quality))
-        elif "x" in quality: # quality is probably resolution: width x height
+        elif "x" in quality:  # quality is probably resolution: width x height
             vidRes = quality.split("x")
             vidWidth = int(vidRes[0])
         
@@ -394,7 +394,7 @@ def setPerms(myFile, verbose):
     os.chown(myFile, uid, gid)
     printInfo2("Setting write permission for group")
     os.chmod(myFile, mask)
-    #os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
+    # os.chmod(myFile, stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
     print
 
 def getffprobePath(verbose):
@@ -462,7 +462,7 @@ def getDuration(stream, checkDuration, verbose):
         while True:
             trys += 1
             if trys > maxTrys:
-                printError("Giving up after % trys" % (trys -1))
+                printError("Giving up after % trys" % (trys - 1))
                 printWarning("Setting duration to %s" % duration)
                 gotAnswer = True
                 gotXML = True
@@ -470,7 +470,7 @@ def getDuration(stream, checkDuration, verbose):
             
             while True:
                 try:
-                    process = Popen(args, stdout = PIPE, stderr= PIPE)
+                    process = Popen(args, stdout=PIPE, stderr=PIPE)
                 except OSError as e:
                     printError("%s\nYou are probably missing ffmpeg" % e)
                     noFFmpeg = True
@@ -515,8 +515,8 @@ def getDuration(stream, checkDuration, verbose):
         printWarning("Duration check disabled")
         printWarning("Setting duration to %s" % duration)
         
-    printInfo1("Duration: %s s (%s)" % (duration, 
-                                        str(datetime.timedelta(seconds = int(duration.rstrip("0").rstrip("."))))))
+    printInfo1("Duration: %s s (%s)" % (duration,
+                                        str(datetime.timedelta(seconds=int(duration.rstrip("0").rstrip("."))))))
        
     return duration
 
@@ -530,7 +530,7 @@ def getSubSize(subAddress, verbose):
     while True:
         trys += 1
         if trys > maxTrys:
-            printError("Giving up after % trys" % (trys -1))
+            printError("Giving up after % trys" % (trys - 1))
             printWarning("Setting subtile size to %s" % subSize)
             gotAnswer = True
             break
@@ -559,8 +559,8 @@ def checkDurations(line, verbose):
     printScores()
     expectedDuration = int(str(line['duration']).rstrip("0").rstrip("."))
     downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
-    printInfo1("Expected duration: %d s (%s)" % (expectedDuration, str(datetime.timedelta(seconds = expectedDuration))))
-    printInfo1("Downloaded duration: %d s (%s)" % (downloadedDuration, str(datetime.timedelta(seconds = downloadedDuration))))
+    printInfo1("Expected duration: %d s (%s)" % (expectedDuration, str(datetime.timedelta(seconds=expectedDuration))))
+    printInfo1("Downloaded duration: %d s (%s)" % (downloadedDuration, str(datetime.timedelta(seconds=downloadedDuration))))
         
     if downloadedDuration + 2 > expectedDuration and downloadedDuration - 2 < expectedDuration:
         durationsMatch = True
@@ -597,7 +597,7 @@ def runProcess(cmd, failMessage, verbose):
             printError("Tried %s times\nSkipping..." % trys)
             break
         try:
-            process = Popen(args, stdout = PIPE)
+            process = Popen(args, stdout=PIPE)
             while True:
                 output = process.stdout.readline()
                 if not output:
@@ -634,17 +634,17 @@ def ffmpegDownloadCommand(line, verbose):
                "%s -i %s"
                " -acodec copy -vcodec copy -absf aac_adtstoasc"
                " '%s.%s'"
-               % (ffmpeg, 
-                  line['address'], 
+               % (ffmpeg,
+                  line['address'],
                   line['name'].rstrip(), line['suffix'])
                )
     elif ffmpeg == avconvPath:
         cmd = (
                "%s -i %s"
-               " -acodec copy -vcodec copy"# -absf aac_adtstoasc"
+               " -acodec copy -vcodec copy"  # -absf aac_adtstoasc"
                " '%s.%s'"
-               % (ffmpeg, 
-                  line['address'], 
+               % (ffmpeg,
+                  line['address'],
                   line['name'].rstrip(), line['suffix'])
                )
     else:
@@ -702,7 +702,7 @@ def getDownloadCommands(line, verbose):
     if line['address'].startswith("http"):
         if verbose:
             printInfo1("This should be downloaded with ffmpeg")
-        videoCmd =  ffmpegDownloadCommand(line, verbose)
+        videoCmd = ffmpegDownloadCommand(line, verbose)
     elif line['address'].startswith("rtmp"):
         printInfo1("This should be downloaded with rtmpdump")
         videoCmd = rtmpdumpDownloadCommand(line, verbose)
@@ -768,9 +768,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
         while True:
             trys += 1
             if trys > maxTrys:
-                printError("Tried to download video %s times\nSkipping..." % (trys -1))
-                #printInfo2("Deleting the downloaded file")
-                #if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
+                printError("Tried to download video %s times\nSkipping..." % (trys - 1))
+                # printInfo2("Deleting the downloaded file")
+                # if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
                 #    os.remove("%s.%s" % (line['name'].rstrip(), line['suffix']))
                 break
             
@@ -815,9 +815,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
             while True:
                 trys += 1
                 if trys > maxTrys:
-                    printError("Tried to download subtitles %s times\nSkipping..." % (trys -1))
-                    #printInfo2("Deleting the downloaded file")
-                    #if os.path.isfile("%s.%s" % (line['name'].rstrip(), "srt")):
+                    printError("Tried to download subtitles %s times\nSkipping..." % (trys - 1))
+                    # printInfo2("Deleting the downloaded file")
+                    # if os.path.isfile("%s.%s" % (line['name'].rstrip(), "srt")):
                     #    os.remove("%s.%s" % (line['name'].rstrip(), "srt"))
                     break
                 
@@ -828,9 +828,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 
                 if continueWithProcess(line['name'].rstrip(), "srt", keepOld, reDownload,
                                        "Will redownload\n", "Keeping old file. No download\n", verbose):
-                    #process = runProcess(subCmd, "Failed downloading\nTrying again... ", verbose)
+                    # process = runProcess(subCmd, "Failed downloading\nTrying again... ", verbose)
                     result = downloadFile(line['subs'], "%s.%s" % (line['name'].rstrip(), "srt"), verbose)
-                    #if process.returncode:
+                    # if process.returncode:
                     if not result:
                         printScores()
                         printError("Failed to download subtitles")
@@ -878,13 +878,13 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
         if line['subs']:
             subSize = os.path.getsize("%s.srt" % line['name'].rstrip())
             with open("%s.srt" % line['name'].rstrip()) as myfile:
-                subLines = sum(1 for line in myfile) # number of lines in file
-            myfile.close() # close file
+                subLines = sum(1 for line in myfile)  # number of lines in file
+            myfile.close()  # close file
         else:
             subSize = "na"
             subLines = "na"
 
-        infoDownloaded.append({'videoName': "%s.%s" % (line['name'].rstrip(),line['suffix']),
+        infoDownloaded.append({'videoName': "%s.%s" % (line['name'].rstrip(), line['suffix']),
                                'fileSize': fileSize,
                                'fileSizeMeasure': fileSizeMeasure,
                                'duration': duration,
@@ -917,7 +917,7 @@ def getInfo(line, argument, verbose):
     if verbose:
         printInfo1("Command: %s" % cmd)
     args = shlex.split(cmd)
-    process = Popen(args, stdout = PIPE, stderr= PIPE)
+    process = Popen(args, stdout=PIPE, stderr=PIPE)
     output, error = process.communicate()
     return output.rstrip()
 
@@ -943,7 +943,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         if downloads:
             printInfo1("These files would have been downloaded:")
             for line in downloads:
-                #print line
+                # print line
                 printInfo1("\nVideo name: %s.%s" % (line['name'].rstrip(), line['suffix']))
                 printInfo1("Video quality: %s" % line['quality'])
                 printInfo1("Video address: %s" % line['address'])
@@ -955,7 +955,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
                 print "Duration: %s s" % line['duration']
                 if bashOutFile:
                     if line['address'].startswith("http"):
-                        cmd =  ffmpegDownloadCommand(line, verbose)
+                        cmd = ffmpegDownloadCommand(line, verbose)
                         bashFile.write("%s\n\n" % cmd)
                     elif line['address'].startswith("rtmp"):
                         cmd = rtmpdumpDownloadCommand(line, verbose)
@@ -973,28 +973,28 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
     for line in infoDownloaded:
         printInfo1("\nVideo: %s" % line['videoName'])
         printScores()
-        #printInfo1("File size: %s b" % line['fileSize'])
+        # printInfo1("File size: %s b" % line['fileSize'])
         printInfo1("File size: %s" % line['fileSizeMeasure'])
-        #printInfo1("Duration: %s ms" % line['duration'])
+        # printInfo1("Duration: %s ms" % line['duration'])
         printInfo1("Duration: %s" % line['durationFormatted'])
-        #printInfo1("Overall bit rate: %s bps" % line['overallBitRate'])
+        # printInfo1("Overall bit rate: %s bps" % line['overallBitRate'])
         printInfo1("Overall bit rate: %s" % line['overallBitRateMeasure'])
 
         print
-        #printInfo1("Video format: %s" % line['videoFormat'])
-        #printInfo1("Video codec ID: %s" % line['videoCodecId'])
-        #printInfo1("Video bit rate: %s bps" % line['videoBitRate'])
-        #printInfo1("Video bit rate: %s" % line['videoBitRateMeasure'])
+        # printInfo1("Video format: %s" % line['videoFormat'])
+        # printInfo1("Video codec ID: %s" % line['videoCodecId'])
+        # printInfo1("Video bit rate: %s bps" % line['videoBitRate'])
+        # printInfo1("Video bit rate: %s" % line['videoBitRateMeasure'])
         printInfo1("Width: %s px" % line['width'])
         printInfo1("Height: %s px" % line['height'])
         printInfo1("Frame rate: %s fps" % line['frameRate'])
-        #printInfo1("Frame count: %s" % line['frameCount'])
+        # printInfo1("Frame count: %s" % line['frameCount'])
 
-        #print
-        #printInfo1("Audio format: %s" % line['audioFormat'])
-        #printInfo1("Audio codec ID: %s" % line['audioCodecId'])
-        #printInfo1("Audio bit rate: %s bps" % line['audioBitRate'])
-        #printInfo1("Audio bit rate: %s" % line['audioBitRateMeasure'])
+        # print
+        # printInfo1("Audio format: %s" % line['audioFormat'])
+        # printInfo1("Audio codec ID: %s" % line['audioCodecId'])
+        # printInfo1("Audio bit rate: %s bps" % line['audioBitRate'])
+        # printInfo1("Audio bit rate: %s" % line['audioBitRateMeasure'])
 
         if line['subLines'] != 'na':
             printInfo1("\nSubtitles: %s" % line['subName'])
@@ -1046,7 +1046,7 @@ def convertVideo(videoInFile, convertTo, reEncode, verbose):
                        " '%s.%s'"
                        % (ffmpeg,
                           "%s.bak" % videoInFile,
-                          videoCodec, 
+                          videoCodec,
                           fileName, convertTo)
                        )
             else:
@@ -1054,7 +1054,7 @@ def convertVideo(videoInFile, convertTo, reEncode, verbose):
                        " -i %s -vcodec copy -acodec copy"
                        " '%s.%s'"
                        % (ffmpeg,
-                          "%s.bak" % videoInFile, 
+                          "%s.bak" % videoInFile,
                           fileName, convertTo)
                        )
             while True:

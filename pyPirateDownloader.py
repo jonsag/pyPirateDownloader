@@ -25,7 +25,7 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'u:l:o:b:q:c:f:Rskrnvh' ,
+    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:o:b:q:c:f:Rskrnvh' ,
                                  ['url=',
                                   'list=',
                                   'outfile=',
@@ -43,7 +43,7 @@ try:
 except getopt.GetoptError as e:
     onError(1, str(e))
 
-if len(sys.argv) == 1: # no options passed
+if len(sys.argv) == 1:  # no options passed
     onError(2, 2)
 
 for option, argument in myopts:
@@ -83,13 +83,13 @@ if not url and not dlList and not convertTo:
 
 if url and not name and not convertTo:
     onError(5, 5)
-#elif name and not url:
+# elif name and not url:
 #    onError(6, 6)
 
 if reDownload and keepOld:
     onError(11, 11)
 
-if name: # check for quote and double quote in out file name
+if name:  # check for quote and double quote in out file name
     print
     if name != name.replace("'", ""):
         name = name.replace("'", "")
