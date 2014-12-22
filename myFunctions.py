@@ -757,12 +757,12 @@ def numbering(number, verbose):
     return text
     
 def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
-    trys = 0
     oldReDownload = reDownload
     
     printInfo2("\nStarting downloads")
     
     for line in downloads:
+        trys = 0
         videoCmd, subCmd = getDownloadCommands(line, verbose)
 
         while True:
