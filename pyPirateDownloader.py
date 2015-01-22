@@ -4,7 +4,7 @@
 
 import getopt, sys, os
 
-from myFunctions import *
+from misc import usage, onError, printWarning, parseXML, finish, dlListPart, convertVideo
 
 import cmd
 from __builtin__ import True
