@@ -77,7 +77,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
                 convertDownloads(downloads, convertTo, verbose)
         else:
             infoDownloaded = ""
-            onError(99, "\nCould not find any streams to download")
+            onError(17, "Could not find any streams to download")
     else:
         infoDownloaded = ""
         printInfo1("\nListing only")

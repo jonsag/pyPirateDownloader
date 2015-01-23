@@ -4,7 +4,15 @@
 
 import getopt, sys, os
 
-from misc import usage, onError, printWarning, parseXML, finish, dlListPart, convertVideo
+from misc import usage, onError, printWarning
+
+from parseInput import parseXML, dlListPart
+
+from convert import convertVideo
+
+from afterDownload import finish
+
+from parsePage import parseURL
 
 import cmd
 from __builtin__ import True
@@ -16,6 +24,7 @@ bashOutFile = ""
 setQuality = ""
 convertTo = ""
 videoInFile = ""
+parseText = ""
 reEncode = False
 listOnly = False
 verbose = False
@@ -25,26 +34,27 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:o:b:q:c:f:Rskrnvh' ,
-                                 ['url=',
-                                  'list=',
-                                  'outfile=',
-                                  'bashfile=',
-                                  'quality=',
-                                  'convert=',
-                                  'file=',
-                                  'reencode',
-                                  'show',
-                                  'keepold',
-                                  'redownload',
-                                  'noduration',
+    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:o:b:q:c:f:p:Rskrnvh' ,
+                                 ['url=', 
+                                  'list=', 
+                                  'outfile=', 
+                                  'bashfile=', 
+                                  'quality=', 
+                                  'convert=', 
+                                  'file=', 
+                                  'parsetext=', 
+                                  'reencode', 
+                                  'show', 
+                                  'keepold', 
+                                  'redownload', 
+                                  'noduration', 
                                   'verbose'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
 
 if len(sys.argv) == 1:  # no options passed
-    onError(2, 2)
+    onError(2, "No options given")
 
 for option, argument in myopts:
     if option in ('-u', '--url'):
@@ -52,7 +62,7 @@ for option, argument in myopts:
     elif option in ('-l', '--list'):
         dlList = argument
         if not os.path.isfile(dlList):
-            onError(4, dlList)
+            onError(4, "%s is not a file" % dlList)
     elif option in ('-o', '--outfile'):
         name = argument
     elif option in ('-b', '--bashfile'):
@@ -63,6 +73,8 @@ for option, argument in myopts:
         convertTo = argument.lower()
     elif option in ('-f', '--file'):
         videoInFile = argument
+    elif option in ('-p', '--parsetext'):
+        parseText = argument
     elif option in ('-R', '--reencode'):
         reEncode = True
     elif option in ('-s', '--show'):
@@ -79,15 +91,15 @@ for option, argument in myopts:
         usage(0)
         
 if not url and not dlList and not convertTo:
-    onError(3, 3)
+    onError(3, "No program part chosen")
 
-if url and not name and not convertTo:
-    onError(5, 5)
-# elif name and not url:
-#    onError(6, 6)
+if url and not name and not parseText:
+    onError(5, "Option -u also requires setting option -o or -p")
+if url and parseText and not name:
+    onError(6, "Option -u and -p also requires setting option -o")
 
 if reDownload and keepOld:
-    onError(11, 11)
+    onError(11, "You can't select both --keepold (-k) and --redownload (-r)")
 
 if name:  # check for quote and double quote in out file name
     print
@@ -100,20 +112,24 @@ if name:  # check for quote and double quote in out file name
         printWarning('Removed double quotes (") in out file name')
         print
         
-if url and not convertTo:
-    
+if url and not convertTo and not parseText:
     downloads = parseXML(url, name, setQuality, checkDuration, verbose)
     finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
-elif dlList and not convertTo:
+    
+elif dlList and not convertTo and not parseText:
     downloads = dlListPart(dlList, setQuality, checkDuration, verbose)
     finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
+    
+elif url and parseText:
+    parseURL(url, parseText, name, verbose)
+    
 elif convertTo:
     if not videoInFile:
-        onError(12, 12)
+        onError(12, "You didn't set -f <video file>")
     elif not os.path.isfile(videoInFile):
-        onError(13, videoInFile)
+        onError(13, "%s does not exist" % videoInFile)
     elif os.path.islink(videoInFile):
-        onError(14, videoInFile)
+        onError(14, "%s is a link" % videoInFile)
     else:
         convertVideo(videoInFile, convertTo, reEncode, verbose)
 

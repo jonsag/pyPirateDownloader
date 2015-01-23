@@ -43,82 +43,45 @@ videoExtensions = (config.get('video', 'videoExtensions')).split(',')  # load vi
 
 videoCodec = config.get('video', 'videoCodec')
 
-# rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions') s
+# rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions')
 
 def onError(errorCode, extra):
     printError("\nError:")
-    if errorCode == 1:
+    if errorCode in (1, 2, 3, 5, 6, 12):
         printError(extra)
         usage(errorCode)
-    elif errorCode == 2:
-        printError("No options given")
-        usage(errorCode)
-    elif errorCode == 3:
-        printError("No program part chosen")
-        usage(errorCode)
-    elif errorCode == 4:
-        printError("%s is not a file" % extra)
-        sys.exit(errorCode)
-    elif errorCode == 5:
-        printError("Option -u also requires setting option -o")
-        usage(errorCode)
-    elif errorCode == 6:
-        printError("Option -o also requires setting option -u")
-        usage(errorCode)
-    elif errorCode == 7:
-        printError("Two urls in a row. Second should be a file name")
-        sys.exit(errorCode)
-    elif errorCode == 8:
-        printError("Last url did not have a following name")
-        sys.exit(errorCode)
-    elif errorCode == 9:
-        printError("First line was not a url")
-        sys.exit(errorCode)
-    elif errorCode == 10:
+    elif errorCode in (4, 7 ,8 ,9, 10, 11, 13, 14, 15, 16, 20):
         printError(extra)
         sys.exit(errorCode)
-    elif errorCode == 11:
-        printError("You can't select both --keepold (-k) and --redownload (-r)")
-        sys.exit(errorCode)
-    elif errorCode == 12:
-        printError("You didn't set -f <video file>")
-        sys.exit(errorCode)
-    elif errorCode == 13:
-        printError("%s does not exist" % extra)
-        sys.exit(errorCode)
-    elif errorCode == 14:
-        printError("%s is a link" % extra)
-        sys.exit(errorCode)
-    elif errorCode == 15:
-        printError("%s is probably not a video file" % extra)
-        sys.exit(errorCode)
-    elif errorCode == 16:
-        printError("You do not have either ffmpeg or avconv on the paths set in your config")
-        sys.exit(errorCode)
-    elif errorCode == 99:
-        printError("%s" % extra)
+    elif errorCode in (17, 18, 19):
+        printError(extra)
         sys.exit(0)
         
 def usage(exitCode):
     printInfo1("\nUsage:")
     printScores()
-    printInfo1("%s -u <url>|-l <download list> -o <out name> [-c <out format>]" % sys.argv[0])
+    printInfo1("%s -u <url> -o <out name>" % sys.argv[0])
     printInfo1("        Download <url> to <out name>")
+    printInfo1("\n%s -l <download list>" % sys.argv[0])
     printInfo1("        Download urls from list, save as next line in list says")
-    printInfo1("        [Convert the downloads")
     printInfo1("\n%s [url or download list] -s [-b <bash file name>]" % sys.argv[0])
-    printInfo1("        List downloads only")
+    printInfo1("        Show downloads only")
     printInfo1("        [Create bash file to make downloads]")
-    printInfo1("\n%s -c <out format> -f <video file> " % sys.argv[0])
+    printInfo1("\n%s -f <video file> -c <video format>" % sys.argv[0])
     printInfo1("        Convert video file")
+    printInfo1("\n%s -u <url> -p <text> -o <out file>" % sys.argv[0])
+    printInfo1("        Parse url and get links with text, save as <out file>.list")
     printInfo1("\n%s -h" % sys.argv[0])
     printInfo1("    Prints this")
     printInfo1("\nOptions:")
     printScores()
+    printInfo1("    -c <video format> converts downloaded video")
     printInfo1("    -q <quality> set quality for download")
     printInfo1("    -n don't check durations")
-    printInfo1("    -k keep temporary files and old downloads")
-    printInfo1("    -r re download even if file exists")
+    printInfo1("    -k keep temporary files and old downloads. Default saves nothing")
+    printInfo1("    -r redownload even if file exists. Default skips if file exists")
+    printInfo1("   (-R reencode video)")
+    printInfo1("    -v verboses output")
     print
     sys.exit(exitCode)
     

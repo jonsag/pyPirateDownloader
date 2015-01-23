@@ -11,7 +11,8 @@ from misc import (printInfo1, printInfo2, printError, printScores, printWarning,
 
 from preDownload import getffmpegPath
 
-from afterDownload import checkDurations, setPerms, checkFileSize, getInfo
+#from afterDownload import checkDurations, setPerms, checkFileSize, getInfo
+from afterDownload import *
 
 infoDownloaded = []
 
@@ -52,7 +53,7 @@ def ffmpegDownloadCommand(line, verbose):
                   line['name'].rstrip(), line['suffix'])
                )
     else:
-        onError(16, 16)
+        onError(16, "You do not have either ffmpeg or avconv on the paths set in your config")
     
     if verbose:
         printInfo1("ffmpeg command: %s" % cmd)

@@ -32,7 +32,7 @@ def convertVideo(videoInFile, convertTo, reEncode, verbose):
         if extension == fileExtension.lower():
             fileAccepted = True
     if not fileAccepted:        
-        onError(15, videoInFile)
+        onError(15, "%s is probably not a video file" % videoInFile)
     
     if fileExtension.lower() == convertTo:
         printWarning("Same out format chosen as existing\nWill not convert")

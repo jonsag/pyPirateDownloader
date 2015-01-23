@@ -30,19 +30,19 @@ def dlListPart(dlList, setQuality, checkDuration, verbose):
             if line.startswith("http") and not url:  # line is a url and url is not set
                 url = line
             elif url and line.startswith("http"):  # url is already set and line is a url
-                onError(7, 7)
+                onError(7, "Two urls in a row. Second should be a file name")
             else:
                 name = line
                 
         if name and not url:
-            onError(9, 9)
+            onError(9, "First line was not a url")
         elif url and name:
             downloads = parseXML(url, name, setQuality, checkDuration, verbose)
             url = ""
             name = ""
 
     if url:
-        onError(8, 8)
+        onError(8, "Last url did not have a following name")
         
     return downloads
 
