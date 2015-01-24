@@ -11,7 +11,7 @@ from parseInput import parseXML, dlListPart
 
 from convert import convertVideo
 
-from afterDownload import finish
+from download import finish
 
 from parsePage import parseURL
 

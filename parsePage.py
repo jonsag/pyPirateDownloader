@@ -10,7 +10,7 @@ from HTMLParser import HTMLParser
 
 from BeautifulSoup import BeautifulSoup
     
-from misc import (printInfo1, printInfo2, printWarning, printError, 
+from misc import (printInfo1, printInfo2,  
                   maxTrys, waitTime, listSuffix, seasonText, videoText, 
                   onError, continueWithProcess, numbering)
 

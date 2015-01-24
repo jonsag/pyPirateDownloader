@@ -8,12 +8,12 @@ from time import sleep
 
 import xml.etree.ElementTree as ET
 
-from misc import (onError, printInfo1, printInfo2, printWarning, printScores, 
+from misc import (onError, printInfo1, printInfo2, printWarning,  
                   apiBaseUrl, getStreamsXML, printScores,
                   maxTrys, waitTime,  
                   minVidBitRate, maxVidBitRate, minVidWidth, maxVidWidth) 
 
-from preDownload import getDuration, getSubSize
+from download import getDuration, getSubSize
 
 downloads = []
 
@@ -73,13 +73,13 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
             try:
                 piratePlayXML = urllib2.urlopen(parseUrl)
             except urllib2.HTTPError, e:
-                printWarning("HTTPError\n    %s\n    Trying again...\n" % str(e.code))
+                onError(35, "HTTPError\n    %s\n    Trying again...\n" % str(e.code))
                 sleep(waitTime)
             except urllib2.URLError, e:
-                printWarning("URLError\n    %s\n    Trying again...\n" % str(e.reason))
+                onError(36, "URLError\n    %s\n    Trying again...\n" % str(e.reason))
                 sleep(waitTime)
             except:
-                printWarning("Error\n    Trying again...\n")
+                onError(37, "Error\n    Trying again...\n")
                 sleep(waitTime)
             else:
                 if verbose:
@@ -91,7 +91,8 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
         try:
             xmlRoot = ET.fromstring(piratePlayXMLString)
         except:
-            printWarning("*** Did not receive a valid XML. Trying again...")
+            onError(42, "Did not receive a valid XML")
+            printInfo2("Trying again...")
         else:
             if verbose:
                 printInfo1("Downloaded a valid XML")

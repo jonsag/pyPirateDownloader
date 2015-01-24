@@ -8,7 +8,7 @@ from misc import (printInfo1, printInfo2, printWarning,
                   videoExtensions, videoCodec, 
                   onError)
 
-from preDownload import getffmpegPath
+from download import getffmpegPath
 
 from misc import runProcess, continueWithProcess
 

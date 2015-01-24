@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, os, sys, shlex
+import ConfigParser, os, sys, shlex, grp
 
 from subprocess import Popen, PIPE
-from time import sleep
 
 from colorama import init, deinit
 from termcolor import colored
@@ -49,21 +48,29 @@ listSuffix = config.get('misc', 'listSuffix')
 seasonText = config.get('textRecognition', 'seasonText')
 videoText = config.get('textRecognition', 'videoText')
 
+uid = os.getuid()
+gid = grp.getgrnam(group).gr_gid
+
 # rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions')
 
 def onError(errorCode, extra):
     printError("\nError %s:" % errorCode)
-    if errorCode in (1, 2, 3, 5, 6, 12):
+    if errorCode in (1, 2, 3, 5, 6, 
+                     12):
         printError(extra)
         usage(errorCode)
-    elif errorCode in (4, 7 ,8 ,9, 10, 11, 13, 14, 15, 16, 22):
+    elif errorCode in (4, 7 ,8 ,9, 
+                       10, 11, 13, 14, 15, 16, 
+                       22):
         printError(extra)
         sys.exit(errorCode)
     elif errorCode in (17, 18, 19):
         printError(extra)
         sys.exit(0)
-    elif errorCode in (20, 21, 23, 24, 25, 26):
-        printError(extra)
+    elif errorCode in (20, 21, 23, 24, 25, 26, 27, 28, 29, 
+                       30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
+                       40, 41, 42, 43, 44):
+        printWarning(extra)
         return
         
 def usage(exitCode):
@@ -165,21 +172,41 @@ def runProcess(cmd, failMessage, verbose):
     args = shlex.split(cmd)
     while True:
         if trys > maxTrys:
-            printError("Tried %s times\nSkipping..." % trys)
+            onError(27, "Tried %s times\nSkipping..." % trys)
             break
-        try:
-            process = Popen(args, stdout=PIPE)
-            while True:
-                output = process.stdout.readline()
-                if not output:
-                    break
-                print output
-        except:
-            printError(failMessage)
-            sleep(waitTime)
-        else:
-            break
+        #try:
+        #    process = Popen(args, stdout=PIPE)
+        #    while True:
+        #        output = process.stdout.readline()
+        #        if not output:
+        #            break
+        #        print output
+        #except:
+        #    onError(28, failMessage)
+        #    sleep(waitTime)
+        #else:
+        #    break
+         
+        process = Popen(args, stdout=PIPE)
+        while True:
+            output = process.stdout.readline()
+            if not output:
+                break
+            print output
             
+        #streamdata = process.communicate()[0]
+        
+        #exitCode = process.returncode
+        #print "Exit code: %s" % exitCode
+        
+        exitCode = 0
+        if verbose:
+            printInfo2("Exit code: %s" % exitCode)
+        if exitCode == 0:
+            break
+        else:
+            onError(44, "Did not complete download")
+            printInfo2("Trying again...")
     return process
 
 def continueWithProcess(fileName, suffix, keepOld, reDownload, firstMessage, secondMessage, verbose):
