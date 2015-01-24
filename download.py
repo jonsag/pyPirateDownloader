@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 from misc import (printInfo1, printInfo2, printScores, printWarning, 
                   ffmpegPath, ffprobePath, avconvPath, avprobePath, maxTrys, uid, gid,
-                  bashSuffix, 
+                  bashSuffix, getffmpegPath, getffprobePath, 
                   numbering, continueWithProcess, runProcess, 
                   onError, mask, group)
 
@@ -19,42 +19,6 @@ from convert import convertDownloads
 infoDownloaded = []
 
 ############################## before download
-
-def getffprobePath(verbose):
-    if verbose:
-        printInfo2("Checking your ffprobe/avprobe installation...")
-    if os.path.isfile(ffprobePath):
-        if verbose:
-            printInfo1("Using ffprobe")
-        ffprobe = ffprobePath
-    elif os.path.isfile(avprobePath):
-        if verbose:
-            printInfo1("Using avprobe")
-        ffprobe = avprobePath
-    else:
-        if verbose:
-            printWarning("You don't have either ffprobe or avprobe in your given paths")
-        ffprobe = ""
-        
-    return ffprobe
-
-def getffmpegPath(verbose):
-    if verbose:
-        printInfo2("Checking your ffmpeg/avconv installation...")
-    if os.path.isfile(ffmpegPath):
-        if verbose:
-            printInfo1("Using ffmpeg")
-        ffmpeg = ffmpegPath
-    elif os.path.isfile(avconvPath):
-        if verbose:
-            printInfo1("Using avconv")
-        ffmpeg = avconvPath
-    else:
-        if verbose:
-            printWarning("You don't have either ffmpeg or avconv in your given paths")
-        ffmpeg = ""
-        
-    return ffmpeg
 
 def getDuration(stream, checkDuration, verbose):
     duration = "0.000"

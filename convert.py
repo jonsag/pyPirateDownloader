@@ -5,10 +5,8 @@
 import os
 
 from misc import (printInfo1, printInfo2, printWarning, 
-                  videoExtensions, videoCodec, 
+                  videoExtensions, videoCodec, getffmpegPath, 
                   onError)
-
-from download import getffmpegPath
 
 from misc import runProcess, continueWithProcess
 
