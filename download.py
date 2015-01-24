@@ -111,6 +111,7 @@ def getDuration(stream, checkDuration, verbose):
 def getSubSize(subAddress, checkDuration, verbose):
     subSize = "0"
     trys = 0
+    gotAnswer = False
     
     if checkDuration:
     
