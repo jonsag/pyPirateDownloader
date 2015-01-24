@@ -130,6 +130,7 @@ def getSubSize(subAddress, checkDuration, verbose):
                 sub = urllib2.urlopen(subAddress)
             except:
                 onError(41, "Undefined error")
+                printInfo2("Trying again...")
             else:
                 if verbose:
                     printInfo1("Got an answer")
