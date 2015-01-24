@@ -4,7 +4,8 @@
 
 import getopt, sys, os
 
-from misc import usage, onError, printWarning
+from misc import (usage, onError, 
+                  )
 
 from parseInput import parseXML, dlListPart
 
@@ -14,9 +15,6 @@ from afterDownload import finish
 
 from parsePage import parseURL
 
-import cmd
-from __builtin__ import True
-
 url = ""
 dlList = ""
 name = ""
@@ -24,7 +22,7 @@ bashOutFile = ""
 setQuality = ""
 convertTo = ""
 videoInFile = ""
-parseText = ""
+parseText = False
 reEncode = False
 listOnly = False
 verbose = False
@@ -34,7 +32,7 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:o:b:q:c:f:p:Rskrnvh' ,
+    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:o:b:q:c:f:pRskrnvh' ,
                                  ['url=', 
                                   'list=', 
                                   'outfile=', 
@@ -42,7 +40,7 @@ try:
                                   'quality=', 
                                   'convert=', 
                                   'file=', 
-                                  'parsetext=', 
+                                  'parsetext', 
                                   'reencode', 
                                   'show', 
                                   'keepold', 
@@ -67,6 +65,7 @@ for option, argument in myopts:
         name = argument
     elif option in ('-b', '--bashfile'):
         bashOutFile = argument
+        checkDuration = False
     elif option in ('-q', '--quality'):
         setQuality = int(argument)
     elif option in ('-c', '--convert'):
@@ -74,11 +73,12 @@ for option, argument in myopts:
     elif option in ('-f', '--file'):
         videoInFile = argument
     elif option in ('-p', '--parsetext'):
-        parseText = argument
+        parseText = True
     elif option in ('-R', '--reencode'):
         reEncode = True
     elif option in ('-s', '--show'):
         listOnly = True
+        checkDuration = False
     elif option in ('-k', '--keepold'):
         keepOld = True
     elif option in ('-r', '--redownload'):
@@ -99,18 +99,7 @@ if url and parseText and not name:
     onError(6, "Option -u and -p also requires setting option -o")
 
 if reDownload and keepOld:
-    onError(11, "You can't select both --keepold (-k) and --redownload (-r)")
-
-if name:  # check for quote and double quote in out file name
-    print
-    if name != name.replace("'", ""):
-        name = name.replace("'", "")
-        printWarning("Removed quotes (') in out file name")
-        print
-    if name != name.replace('"', ''):
-        name = name.replace('"', '')
-        printWarning('Removed double quotes (") in out file name')
-        print
+    onError(11, "You can't select both --keepold (-k) and --redownload (-r)") 
         
 if url and not convertTo and not parseText:
     downloads = parseXML(url, name, setQuality, checkDuration, verbose)
@@ -121,7 +110,7 @@ elif dlList and not convertTo and not parseText:
     finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
     
 elif url and parseText:
-    parseURL(url, parseText, name, verbose)
+    parseURL(url, name, verbose)
     
 elif convertTo:
     if not videoInFile:

@@ -53,6 +53,11 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
     gotAnswer = False
     trys = 0
     gotXML = False
+    
+    if name != name.replace("'", "").replace('"', '').replace(":", ""):
+        name = name.replace("'", "").replace('"', '').replace(":", "")
+        if verbose:
+            printWarning("Removed quotes , double quotes and colons in out file name")
 
     if verbose:
         printInfo2("Parsing the response from pirateplay.se API...")
@@ -149,7 +154,7 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
         if quality == "null":
             streamDuration = getDuration(videoStream, checkDuration, verbose)
             if subtitles:
-                subSize = getSubSize(subtitles, verbose)
+                subSize = getSubSize(subtitles, checkDuration, verbose)
             else:
                 subSize = 0
             downloads.append({'address': videoStream,
@@ -164,7 +169,7 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
             if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
                 streamDuration = getDuration(videoStream, checkDuration, verbose)
                 if subtitles:
-                    subSize = getSubSize(subtitles, verbose)
+                    subSize = getSubSize(subtitles, checkDuration, verbose)
                 else:
                     subSize = 0
                 downloads.append({'address': videoStream,
@@ -178,7 +183,7 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
             elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
                 streamDuration = getDuration(videoStream, checkDuration, verbose)
                 if subtitles:
-                    subSize = getSubSize(subtitles, verbose)
+                    subSize = getSubSize(subtitles, checkDuration, verbose)
                 else:
                     subSize = 0
                 downloads.append({'address': videoStream,
@@ -193,7 +198,7 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
                 if setQuality == vidBitRate or setQuality == vidWidth:
                     streamDuration = getDuration(videoStream, checkDuration, verbose)
                     if subtitles:
-                        subSize = getSubSize(subtitles, verbose)
+                        subSize = getSubSize(subtitles, checkDuration, verbose)
                     else:
                         subSize = 0
                     downloads.append({'address': videoStream,

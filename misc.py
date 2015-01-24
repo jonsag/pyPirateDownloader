@@ -43,19 +43,28 @@ videoExtensions = (config.get('video', 'videoExtensions')).split(',')  # load vi
 
 videoCodec = config.get('video', 'videoCodec')
 
+bashSuffix = config.get('misc', 'bashSuffix')
+listSuffix = config.get('misc', 'listSuffix')
+
+seasonText = config.get('textRecognition', 'seasonText')
+videoText = config.get('textRecognition', 'videoText')
+
 # rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions')
 
 def onError(errorCode, extra):
-    printError("\nError:")
+    printError("\nError %s:" % errorCode)
     if errorCode in (1, 2, 3, 5, 6, 12):
         printError(extra)
         usage(errorCode)
-    elif errorCode in (4, 7 ,8 ,9, 10, 11, 13, 14, 15, 16, 20):
+    elif errorCode in (4, 7 ,8 ,9, 10, 11, 13, 14, 15, 16, 22):
         printError(extra)
         sys.exit(errorCode)
     elif errorCode in (17, 18, 19):
         printError(extra)
         sys.exit(0)
+    elif errorCode in (20, 21, 23, 24, 25, 26):
+        printError(extra)
+        return
         
 def usage(exitCode):
     printInfo1("\nUsage:")
@@ -214,4 +223,5 @@ def numbering(number, verbose):
         text = "th"
         
     return text
+
 

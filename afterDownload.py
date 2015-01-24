@@ -7,8 +7,8 @@ import shlex, os, stat, datetime, grp
 from subprocess import Popen, PIPE
 
 from misc import (printInfo1, printInfo2, printScores, printWarning, 
-                  onError,
-                  group, mask)
+                  onError, bashSuffix, 
+                  group, mask, continueWithProcess)
 
 from download import getVideos, ffmpegDownloadCommand, rtmpdumpDownloadCommand, wgetDownloadCommand
 
@@ -24,12 +24,17 @@ def checkDurations(line, verbose):
     printInfo1("Expected duration: %d s (%s)" % (expectedDuration, str(datetime.timedelta(seconds=expectedDuration))))
     printInfo1("Downloaded duration: %d s (%s)" % (downloadedDuration, str(datetime.timedelta(seconds=downloadedDuration))))
         
-    if downloadedDuration + 2 > expectedDuration and downloadedDuration - 2 < expectedDuration:
+    if expectedDuration == 0:
         durationsMatch = True
-        printInfo1("Durations match")
+        printWarning("Expected duration was 0\nSkipping checking...")
     else:
-        durationsMatch = False
-        printWarning("Durations does not match")
+        if downloadedDuration + 2 > expectedDuration and downloadedDuration - 2 < expectedDuration:
+            durationsMatch = True
+            printInfo1("Durations match")
+        else:
+            durationsMatch = False
+            printWarning("Durations does not match")
+            
     return durationsMatch
 
 def checkFileSize(line, verbose):
@@ -39,12 +44,17 @@ def checkFileSize(line, verbose):
     printInfo1("Expected file size: %d B" % (expectedFileSize))
     printInfo1("Downloaded file size: %d B" % (downloadedFileSize))
         
-    if downloadedFileSize + 2 > expectedFileSize and downloadedFileSize - 2 < expectedFileSize:
+    if expectedFileSize == 0:
         FileSizesMatch = True
-        printInfo1("File sizes match")
+        printWarning("Expected file size was 0\nSkipping checking...")
     else:
-        FileSizesMatch = False
-        printWarning("File sizes does not match")
+        if downloadedFileSize + 2 > expectedFileSize and downloadedFileSize - 2 < expectedFileSize:
+            FileSizesMatch = True
+            printInfo1("File sizes match")
+        else:
+            FileSizesMatch = False
+            printWarning("File sizes does not match")        
+        
     return FileSizesMatch
 
 def setPerms(myFile, verbose):
@@ -83,8 +93,10 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         printInfo1("\nListing only")
         printScores()
         if bashOutFile:
-            bashFile = open("%s.sh" % bashOutFile, "w")
-            bashFile.write("#!/bin/bash\n\n")
+            if continueWithProcess(bashOutFile, bashSuffix, True, False,
+                           "Will redownload\n", "Keeping old file. No download\n", verbose):
+                bashFile = open("%s.%s" % (bashOutFile, bashSuffix), "w")
+                bashFile.write("#!/bin/bash\n\n")
         if downloads:
             printInfo1("These files would have been downloaded:")
             for line in downloads:

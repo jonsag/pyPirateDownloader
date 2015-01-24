@@ -9,8 +9,8 @@ from subprocess import Popen, PIPE
 import xml.etree.ElementTree as ET
 
 from misc import (printInfo1, printInfo2, printWarning, printScores, printError, 
-                  ffprobePath, avprobePath, ffmpegPath, avconvPath, maxTrys
-                  )
+                  ffprobePath, avprobePath, ffmpegPath, avconvPath, maxTrys, 
+                  onError)
 
 def getffprobePath(verbose):
     if verbose:
@@ -135,22 +135,23 @@ def getDuration(stream, checkDuration, verbose):
        
     return duration
 
-def getSubSize(subAddress, verbose):
+def getSubSize(subAddress, checkDuration, verbose):
     subSize = "0"
     trys = 0
     
-    if verbose:
-        printInfo2("Probing size of subtitle file...")
+    if checkDuration:
+    
+        if verbose:
+            printInfo2("Probing size of subtitle file...")
         
-    while True:
-        trys += 1
-        if trys > maxTrys:
-            printError("Giving up after % trys" % (trys - 1))
-            printWarning("Setting subtile size to %s" % subSize)
-            gotAnswer = True
-            break
-            
-        while True:            
+        while True:
+            trys += 1
+            if trys > maxTrys:
+                onError(26, "Giving up after %s trys" % (trys - 1))
+                printWarning("Setting subtitle size to %s" % subSize)
+                gotAnswer = True
+                break
+                       
             try:
                 sub = urllib2.urlopen(subAddress)
             except:
@@ -159,11 +160,20 @@ def getSubSize(subAddress, verbose):
                 if verbose:
                     printInfo1("Got an answer")
                 meta = sub.info()
-                subSize = meta.getheaders("Content-Length")[0]
+                if meta.getheaders:
+                    subSize = meta.getheaders("Content-Length")[0]
+                else:
+                    onError(21, "Could not get headers")
+                    printWarning("Setting subsize to %s", subSize)
                 gotAnswer = True
                 break
-        if gotAnswer:
-            break
+            
+            if gotAnswer:
+                break
+    
+    else:
+        printWarning("Subsize check disabled")
+        printWarning("Setting subsize to %s" % subSize)
 
     printInfo1("Sub size: %s B" % subSize)
     
