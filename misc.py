@@ -69,9 +69,12 @@ def onError(errorCode, extra):
         sys.exit(0)
     elif errorCode in (20, 21, 23, 24, 25, 26, 27, 28, 29, 
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
-                       40, 41, 42, 43, 44):
+                       40, 41, 42, 43, 44, 45):
         printWarning(extra)
         return
+    else:
+        printError("Unkown")
+        sys.exit(errorCode)
         
 def usage(exitCode):
     printInfo1("\nUsage:")
@@ -259,11 +262,16 @@ def getffmpegPath(verbose):
 def downloadFile(address, outName, verbose):
     if verbose:
         printInfo2("Downloading file from %s and saving it as %s" % (address, outName))
-        
-    sourceFile = urllib2.urlopen(address)
-    targetFile = open(outName, 'wb')
-    targetFile.write(sourceFile.read())
-    targetFile.close()
     
-    success = True
+    try:
+        sourceFile = urllib2.urlopen(address)
+    except:
+        onError(45, "Failed getting file")
+        success = False
+    else:
+        targetFile = open(outName, 'wb')
+        targetFile.write(sourceFile.read())
+        targetFile.close()
+        success = True   
+    
     return success
