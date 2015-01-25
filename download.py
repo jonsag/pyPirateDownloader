@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from misc import (printInfo1, printInfo2, printScores, printWarning, 
                   ffmpegPath, ffprobePath, avconvPath, avprobePath, maxTrys, uid, gid,
                   bashSuffix, getffmpegPath, getffprobePath, 
-                  numbering, continueWithProcess, runProcess, 
+                  numbering, continueWithProcess, runProcess, downloadFile, 
                   onError, mask, group)
 
 from convert import convertDownloads
@@ -116,7 +116,7 @@ def getSubSize(subAddress, checkDuration, verbose):
     if checkDuration:
     
         if verbose:
-            printInfo2("Probing size of subtitle file...")
+            printInfo2("Probing for size of subtitle file...")
         
         while True:
             trys += 1
@@ -129,6 +129,7 @@ def getSubSize(subAddress, checkDuration, verbose):
             try:
                 sub = urllib2.urlopen(subAddress)
             except:
+                printInfo2("Could not get subtitle size")
                 onError(41, "Undefined error")
                 printInfo2("Trying again...")
             else:
@@ -155,18 +156,6 @@ def getSubSize(subAddress, checkDuration, verbose):
     return subSize
 
 ############################## download
-
-def downloadFile(address, outName, verbose):
-    if verbose:
-        printInfo2("Downloading file from %s and saving it as %s" % (address, outName))
-        
-    sourceFile = urllib2.urlopen(address)
-    targetFile = open(outName, 'wb')
-    targetFile.write(sourceFile.read())
-    targetFile.close()
-    
-    success = True
-    return success
 
 def ffmpegDownloadCommand(line, verbose):
     if verbose:
@@ -281,10 +270,13 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 
             if continueWithProcess(line['name'].rstrip(), line['suffix'], keepOld, reDownload,
                                    "Will redownload\n", "Keeping old file. No download\n", verbose):
-                process = runProcess(videoCmd, "Failed downloading\nTrying again... ", verbose)
-                if process.returncode:
+                #process = runProcess(videoCmd, verbose)
+                #if process.returncode:
+                #if not process:
+                exitCode = runProcess(videoCmd, verbose)
+                if exitCode != 0:
                     printScores()
-                    onError(30, "Failed to download video")
+                    onError(30, "Failed. Process exited on %s" % exitCode)
                     printInfo2("Trying again...")
                     reDownload = True
                 else:
@@ -302,7 +294,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                         break
                     else:
                         printScores()
-                        onError(31, "Failed to download video")
+                        onError(31, "Failed. Video file does not exist")
                         printInfo2("Trying again...")
                         reDownload = True
             else:
@@ -323,12 +315,12 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 
                 print
                 printInfo2("Downloading subtitles %s.srt ..." % line['name'].rstrip())
-                printInfo1("Try no' %s" % trys)
+                printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
                 printScores()
                 
                 if continueWithProcess(line['name'].rstrip(), "srt", keepOld, reDownload,
                                        "Will redownload\n", "Keeping old file. No download\n", verbose):
-                    # process = runProcess(subCmd, "Failed downloading\nTrying again... ", verbose)
+                    # process = runProcess(subCmd, verbose)
                     result = downloadFile(line['subs'], "%s.%s" % (line['name'].rstrip(), "srt"), verbose)
                     # if process.returncode:
                     if not result:
@@ -346,7 +338,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                             break
                         else:
                             printScores()
-                            onError(34, "Failed to download subtitles")
+                            onError(34, "Failed. Subtitle file does not exist")
                             printInfo2("Trying again")
                             reDownload = True
                 else:

@@ -67,4 +67,4 @@ def convertVideo(videoInFile, convertTo, reEncode, verbose):
                 printInfo1("Will convert")
                 if continueWithProcess(fileName, fileExtension, keepOld, reDownload,
                                        "Will re convert\n", "Keeping old file\nNo converting\n", verbose):
-                    process = runProcess(cmd, "Failed converting\nTrying again... ", verbose)
+                    process = runProcess(cmd, verbose)

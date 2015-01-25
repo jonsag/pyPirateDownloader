@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, os, sys, shlex, grp
+import ConfigParser, os, sys, shlex, grp, urllib2
 
 from subprocess import Popen, PIPE
 
@@ -163,51 +163,20 @@ def printMessage(text, textColor, backgroundColor, textStyle):
 
     deinit()
     
-def runProcess(cmd, failMessage, verbose):
-    trys = 0
-    
+def runProcess(cmd, verbose):
     if verbose:
         printInfo1("Command: %s\n" % cmd)
                         
     args = shlex.split(cmd)
-    while True:
-        if trys > maxTrys:
-            onError(27, "Tried %s times\nSkipping..." % trys)
-            break
-        #try:
-        #    process = Popen(args, stdout=PIPE)
-        #    while True:
-        #        output = process.stdout.readline()
-        #        if not output:
-        #            break
-        #        print output
-        #except:
-        #    onError(28, failMessage)
-        #    sleep(waitTime)
-        #else:
-        #    break
-         
-        process = Popen(args, stdout=PIPE)
-        while True:
-            output = process.stdout.readline()
-            if not output:
-                break
-            print output
-            
-        #streamdata = process.communicate()[0]
-        
-        #exitCode = process.returncode
-        #print "Exit code: %s" % exitCode
-        
-        exitCode = 0
-        if verbose:
-            printInfo2("Exit code: %s" % exitCode)
-        if exitCode == 0:
-            break
-        else:
-            onError(44, "Did not complete download")
-            printInfo2("Trying again...")
-    return process
+    
+    process = Popen(args, stdout=PIPE)    
+    process.communicate() 
+    exitCode = process.wait()
+
+    if verbose:
+        printInfo2("Exit code: %s" % exitCode)
+ 
+    return exitCode
 
 def continueWithProcess(fileName, suffix, keepOld, reDownload, firstMessage, secondMessage, verbose):
     number = 0
@@ -286,3 +255,15 @@ def getffmpegPath(verbose):
         ffmpeg = ""
         
     return ffmpeg
+
+def downloadFile(address, outName, verbose):
+    if verbose:
+        printInfo2("Downloading file from %s and saving it as %s" % (address, outName))
+        
+    sourceFile = urllib2.urlopen(address)
+    targetFile = open(outName, 'wb')
+    targetFile.write(sourceFile.read())
+    targetFile.close()
+    
+    success = True
+    return success
