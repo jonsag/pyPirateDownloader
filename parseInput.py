@@ -157,6 +157,7 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
             if subtitles:
                 subSize = getSubSize(subtitles, checkDuration, verbose)
             else:
+                printInfo2("No subtitles to download")
                 subSize = 0
             downloads.append({'address': videoStream,
                               'suffix': suffixHint,

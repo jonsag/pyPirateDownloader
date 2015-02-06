@@ -294,8 +294,12 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                         break
                     else:
                         printScores()
-                        onError(31, "Failed. Video file does not exist")
-                        printInfo2("Trying again...")
+                        if not durationOK:
+                            onError(31, "Durations does not match")
+                            printInfo2("Trying again")
+                        else:
+                            onError(31, "Failed. Video file does not exist")
+                            printInfo2("Trying again...")
                         reDownload = True
             else:
                 break
@@ -338,8 +342,12 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                             break
                         else:
                             printScores()
-                            onError(34, "Failed. Subtitle file does not exist")
-                            printInfo2("Trying again")
+                            if not fileSizeOK:
+                                onError(47, "Failed. File sizes does not match")
+                                printInfo2("Trying again")
+                            else:
+                                onError(34, "Failed. Subtitle file does not exist")
+                                printInfo2("Trying again")
                             reDownload = True
                 else:
                     break
@@ -419,10 +427,12 @@ def checkDurations(line, verbose):
     else:
         if downloadedDuration + 2 > expectedDuration and downloadedDuration - 2 < expectedDuration:
             durationsMatch = True
-            printInfo1("Durations match")
+            if verbose:
+                printInfo1("Durations match")
         else:
             durationsMatch = False
-            printWarning("Durations does not match")
+            if verbose:
+                printWarning("Durations does not match")
             
     return durationsMatch
 
@@ -439,10 +449,12 @@ def checkFileSize(line, verbose):
     else:
         if downloadedFileSize + 2 > expectedFileSize and downloadedFileSize - 2 < expectedFileSize:
             FileSizesMatch = True
-            printInfo1("File sizes match")
+            if verbose:
+                printInfo1("File sizes match")
         else:
             FileSizesMatch = False
-            printWarning("File sizes does not match")        
+            if verbose:
+                printWarning("File sizes does not match")        
         
     return FileSizesMatch
 
