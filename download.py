@@ -295,7 +295,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                     else:
                         printScores()
                         if not durationOK:
-                            onError(31, "Durations does not match")
+                            onError(46, "Durations does not match")
                             printInfo2("Trying again")
                         else:
                             onError(31, "Failed. Video file does not exist")
