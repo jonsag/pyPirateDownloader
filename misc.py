@@ -48,6 +48,9 @@ listSuffix = config.get('misc', 'listSuffix')
 seasonText = config.get('textRecognition', 'seasonText')
 videoText = config.get('textRecognition', 'videoText')
 
+dlCommentSuccess = config.get('textRecognition', 'dlCommentSuccess')
+dlCommentError = config.get('textRecognition', 'dlCommentError')
+
 resolveHost = False
 
 uid = os.getuid()

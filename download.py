@@ -8,11 +8,11 @@ from subprocess import Popen, PIPE
 
 import xml.etree.ElementTree as ET
 
-from misc import (printInfo1, printInfo2, printScores, printWarning, 
+from misc import (printInfo1, printInfo2, printScores, printWarning, printError, 
                   ffmpegPath, avconvPath, avprobePath, maxTrys, uid, gid,
                   bashSuffix, getffmpegPath, getffprobePath, resolveHost, domainToIPno, 
                   numbering, continueWithProcess, runProcess, downloadFile, 
-                  onError, mask, group)
+                  onError, mask, group, dlCommentSuccess, dlCommentError)
 
 from convert import convertDownloads
 
@@ -278,9 +278,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
             trys += 1
             if trys > maxTrys:
                 onError(29, "Tried to download video %s times\nSkipping..." % (trys - 1))
-                if os.path.isfile("%s.%s ..." % (line['name'].rstrip(), line['suffix'])):
-                    if verbose:
-                        printWarning("Deleting the partially downloaded file...")
+                videoComment = dlCommentError
+                if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
+                    printWarning("Deleting the partially downloaded file...")
                     os.remove("%s.%s ..." % (line['name'].rstrip(), line['suffix']))
                     
                 break
@@ -310,6 +310,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                         printInfo1("Finished downloading video")
                         setPerms("%s.%s" % (line['name'].rstrip(), line['suffix']), verbose)
                         reDownload = oldReDownload
+                        videoComment = dlCommentSuccess
                         break
                     else:
                         printScores()
@@ -331,10 +332,10 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 trys += 1
                 if trys > maxTrys:
                     onError(32, "Tried to download subtitles %s times\nSkipping..." % (trys - 1))
-                    if os.path.isfile("%s.srt ..." % line['name'].rstrip()):
-                        if verbose:
-                            printWarning("Deleting the partially downloaded file...")
+                    if os.path.isfile("%s.srt" % line['name'].rstrip()):
+                        printWarning("Deleting the partially downloaded file...")
                         os.remove("%s.srt ..." % line['name'].rstrip())
+                    subComment = dlCommentError
                     break
                 
                 print
@@ -357,6 +358,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                             printInfo1("Finished downloading subtitles")
                             setPerms("%s.srt" % line['name'].rstrip(), verbose)
                             reDownload = oldReDownload
+                            subComment = dlCommentSuccess
                             break
                         else:
                             printScores()
@@ -403,6 +405,8 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
             subLines = "na"
 
         infoDownloaded.append({'videoName': "%s.%s" % (line['name'].rstrip(), line['suffix']),
+                               'expectedDuration': line['duration'], 
+                               'videoDlComment': videoComment, 
                                'fileSize': fileSize,
                                'fileSizeMeasure': fileSizeMeasure,
                                'duration': duration,
@@ -422,6 +426,8 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                                'audioBitRate': audioBitRate,
                                'audioBitRateMeasure': audioBitRateMeasure,
                                'subName': "%s.srt" % line['name'].rstrip(),
+                               'expectedSubSize': line['subSize'], 
+                               'subDlComment': subComment, 
                                'subSize': subSize,
                                'subLines': subLines})
         
@@ -551,6 +557,12 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         printScores()
         # printInfo1("File size: %s b" % line['fileSize'])
         printInfo1("File size: %s" % line['fileSizeMeasure'])
+        if line['expectedDuration'] != "0.000":
+            printInfo1("Expected duration: %s" % (str(datetime.timedelta(seconds=int(line['expectedDuration'].rstrip("0").rstrip("."))))))
+            if line['videoDlComment'] == dlCommentError:
+                printError(dlCommentError)
+            elif line['videoDlComment'] == dlCommentSuccess:
+                printInfo2(dlCommentSuccess) 
         # printInfo1("Duration: %s ms" % line['duration'])
         printInfo1("Duration: %s" % line['durationFormatted'])
         # printInfo1("Overall bit rate: %s bps" % line['overallBitRate'])
@@ -575,6 +587,12 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         if line['subLines'] != 'na':
             printInfo1("\nSubtitles: %s" % line['subName'])
             printScores()
+            if line['expectedSubSize'] != "0":
+                printInfo1("Expected file size: %s B" % line['expectedSubSize'])
+                if line['subDlComment'] == dlCommentError:
+                    printError(dlCommentError)
+                elif line['subDlComment'] == dlCommentSuccess:
+                    printInfo2(dlCommentSuccess) 
             printInfo1("File size: %s B" % line['subSize'])
             printInfo1("Number of lines: %s" % line['subLines'])
         else:
