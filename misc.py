@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, os, sys, shlex, grp, urllib2
+import ConfigParser, os, sys, shlex, grp, urllib2, socket
 
 from subprocess import Popen, PIPE
-
 from colorama import init, deinit
 from termcolor import colored
+from urlparse import urlparse
 
 config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__)))  # read config file
@@ -47,6 +47,8 @@ listSuffix = config.get('misc', 'listSuffix')
 
 seasonText = config.get('textRecognition', 'seasonText')
 videoText = config.get('textRecognition', 'videoText')
+
+resolveHost = False
 
 uid = os.getuid()
 gid = grp.getgrnam(group).gr_gid
@@ -275,3 +277,39 @@ def downloadFile(address, outName, verbose):
         success = True   
     
     return success
+
+def domainToIPno(url, verbose):
+    if verbose:
+        printInfo2("Analyzing old URL %s ..." % url)
+        
+    parsed = urlparse(url)
+    
+    scheme = parsed.scheme
+    netloc = parsed.netloc
+    path = parsed.path
+    query = parsed.query
+    
+    if verbose:
+        printInfo1("Scheme: %s" % parsed.scheme)
+        printInfo1('Netloc: %s' % parsed.netloc)
+        printInfo1('Path: %s' % parsed.path)
+        printInfo1('Params: %s' % parsed.params)
+        printInfo1('Query: %s' % parsed.query)
+        printInfo1('Fragment: %s' % parsed.fragment)
+        printInfo1('Username: %s' % parsed.username)
+        printInfo1('Password: %s' % parsed.password)
+        printInfo1('Hostname: %s (netloc in lower case)' % parsed.hostname)
+        printInfo1('Port: %s' % parsed.port)
+    
+    domain = "%s://%s" % (scheme, netloc)
+    
+    ip = socket.gethostbyname(netloc)
+        
+    if verbose:
+        printInfo1("Domain: %s" % domain)
+        printInfo1("IP: %s" % ip)
+        printInfo1("Path: %s" % path)
+        
+    newUrl = "%s://%s%s?%s" % (scheme, ip, path, query)
+        
+    return (newUrl)

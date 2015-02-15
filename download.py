@@ -9,8 +9,8 @@ from subprocess import Popen, PIPE
 import xml.etree.ElementTree as ET
 
 from misc import (printInfo1, printInfo2, printScores, printWarning, 
-                  ffmpegPath, ffprobePath, avconvPath, avprobePath, maxTrys, uid, gid,
-                  bashSuffix, getffmpegPath, getffprobePath, 
+                  ffmpegPath, avconvPath, avprobePath, maxTrys, uid, gid,
+                  bashSuffix, getffmpegPath, getffprobePath, resolveHost, domainToIPno, 
                   numbering, continueWithProcess, runProcess, downloadFile, 
                   onError, mask, group)
 
@@ -157,19 +157,24 @@ def getSubSize(subAddress, checkDuration, verbose):
 
 ############################## download
 
-def ffmpegDownloadCommand(line, verbose):
+def ffmpegDownloadCommand(line, verbose):    
     if verbose:
         printInfo2("Composing download command...")
         
     ffmpeg = getffmpegPath(verbose)
     
+    if resolveHost:
+        url = domainToIPno(line['address'], verbose)
+    else:
+        url = line['address']
+    
     if ffmpeg == ffmpegPath:
         cmd = (
                "%s -i %s"
-               " -acodec copy -vcodec copy -absf aac_adtstoasc"
+               " -acodec copy -vcodec copy -absf aac_adtstoasc -timeout 1000"
                " '%s.%s'"
                % (ffmpeg,
-                  line['address'],
+                  url,
                   line['name'].rstrip(), line['suffix'])
                )
     elif ffmpeg == avconvPath:
@@ -178,7 +183,7 @@ def ffmpegDownloadCommand(line, verbose):
                " -acodec copy -vcodec copy"  # -absf aac_adtstoasc"
                " '%s.%s'"
                % (ffmpeg,
-                  line['address'],
+                  url,
                   line['name'].rstrip(), line['suffix'])
                )
     else:
@@ -191,7 +196,13 @@ def ffmpegDownloadCommand(line, verbose):
 def rtmpdumpDownloadCommand(line, verbose):
     if verbose:
         printInfo2("Composing download command...")
-    part1 = line['address'].partition(' playpath=')
+        
+    if resolveHost:
+        url = domainToIPno(line['address'], verbose)
+    else:
+        url = line['address']
+        
+    part1 = url.partition(' playpath=')
     part2 = part1[2].partition(' swfVfy=1 swfUrl=')
     
     if "kanal5play" in part2[2]:
@@ -220,11 +231,17 @@ def rtmpdumpDownloadCommand(line, verbose):
 def wgetDownloadCommand(line, verbose):
     if verbose:
         printInfo2("Composing download command...")
+        
+    if resolveHost:
+        url = domainToIPno(line['subs'], verbose)
+    else:
+        url = line['subs']
+        
     cmd = (
            "wget -O '%s.srt'"
            " %s"
            % (line['name'].rstrip(),
-              line['subs'])
+              url)
            )
     if verbose:
         printInfo1("wget command: %s" % cmd)
@@ -261,6 +278,11 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
             trys += 1
             if trys > maxTrys:
                 onError(29, "Tried to download video %s times\nSkipping..." % (trys - 1))
+                if os.path.isfile("%s.%s ..." % (line['name'].rstrip(), line['suffix'])):
+                    if verbose:
+                        printWarning("Deleting the partially downloaded file...")
+                    os.remove("%s.%s ..." % (line['name'].rstrip(), line['suffix']))
+                    
                 break
             
             print
@@ -270,9 +292,6 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 
             if continueWithProcess(line['name'].rstrip(), line['suffix'], keepOld, reDownload,
                                    "Will redownload\n", "Keeping old file. No download\n", verbose):
-                #process = runProcess(videoCmd, verbose)
-                #if process.returncode:
-                #if not process:
                 exitCode = runProcess(videoCmd, verbose)
                 if exitCode != 0:
                     printScores()
@@ -312,9 +331,10 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 trys += 1
                 if trys > maxTrys:
                     onError(32, "Tried to download subtitles %s times\nSkipping..." % (trys - 1))
-                    # printInfo2("Deleting the downloaded file")
-                    # if os.path.isfile("%s.%s" % (line['name'].rstrip(), "srt")):
-                    #    os.remove("%s.%s" % (line['name'].rstrip(), "srt"))
+                    if os.path.isfile("%s.srt ..." % line['name'].rstrip()):
+                        if verbose:
+                            printWarning("Deleting the partially downloaded file...")
+                        os.remove("%s.srt ..." % line['name'].rstrip())
                     break
                 
                 print
@@ -324,9 +344,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 
                 if continueWithProcess(line['name'].rstrip(), "srt", keepOld, reDownload,
                                        "Will redownload\n", "Keeping old file. No download\n", verbose):
-                    # process = runProcess(subCmd, verbose)
                     result = downloadFile(line['subs'], "%s.%s" % (line['name'].rstrip(), "srt"), verbose)
-                    # if process.returncode:
                     if not result:
                         printScores()
                         onError(33, "Failed to download subtitles")
