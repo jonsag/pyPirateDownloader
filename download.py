@@ -279,9 +279,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
             if trys > maxTrys:
                 onError(29, "Tried to download video %s times\nSkipping..." % (trys - 1))
                 videoComment = dlCommentError
-                if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
-                    printWarning("Deleting the partially downloaded file...")
-                    os.remove("%s.%s ..." % (line['name'].rstrip(), line['suffix']))
+                #if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
+                #    printWarning("Deleting the partially downloaded file...")
+                #    os.remove("%s.%s ..." % (line['name'].rstrip(), line['suffix']))
                     
                 break
             
@@ -333,9 +333,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 trys += 1
                 if trys > maxTrys:
                     onError(32, "Tried to download subtitles %s times\nSkipping..." % (trys - 1))
-                    if os.path.isfile("%s.srt" % line['name'].rstrip()):
-                        printWarning("Deleting the partially downloaded file...")
-                        os.remove("%s.srt ..." % line['name'].rstrip())
+                    #if os.path.isfile("%s.srt" % line['name'].rstrip()):
+                    #    printWarning("Deleting the partially downloaded file...")
+                    #    os.remove("%s.srt ..." % line['name'].rstrip())
                     subComment = dlCommentError
                     break
                 
@@ -504,6 +504,7 @@ def getInfo(line, argument, verbose):
     return output.rstrip()
 
 def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose):
+    shouldBeDeleted = []
     
     if not listOnly:
         if downloads:
@@ -563,6 +564,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
             printInfo1("Expected duration: %s" % (str(datetime.timedelta(seconds=int(line['expectedDuration'].rstrip("0").rstrip("."))))))
             if line['videoDlComment'] == dlCommentError:
                 printError(dlCommentError)
+                shouldBeDeleted.append(line['videoName'])
             else:
                 printInfo2(dlCommentSuccess) 
         # printInfo1("Duration: %s ms" % line['duration'])
@@ -593,12 +595,20 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
                 printInfo1("Expected file size: %s B" % line['expectedSubSize'])
                 if line['subDlComment'] == dlCommentError:
                     printError(dlCommentError)
+                    shouldBeDeleted.append(line['subName'])
                 else:
                     printInfo2(dlCommentSuccess) 
             printInfo1("File size: %s B" % line['subSize'])
             printInfo1("Number of lines: %s" % line['subLines'])
         else:
             printWarning("\nNo subtitles downloaded")
+            
+        if shouldBeDeleted:
+            printWarning("\nThese files should be deleted and re downloaded")
+            printScores()
+            for line in shouldBeDeleted:
+                printInfo1(line)
+            
             
             
             
