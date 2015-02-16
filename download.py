@@ -566,10 +566,10 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         if line['expectedDuration'] != "0.000":
             printInfo1("Expected duration: %s" % (str(datetime.timedelta(seconds=int(line['expectedDuration'].rstrip("0").rstrip("."))))))
             if line['videoDlComment'] == dlCommentError:
-                printError(dlCommentError)
+                printError(line['videoDlComment'])
                 shouldBeDeleted.append(line['videoName'])
             else:
-                printInfo2(dlCommentSuccess) 
+                printInfo2(line['videoDlComment']) 
         # printInfo1("Duration: %s ms" % line['duration'])
         printInfo1("Duration: %s" % line['durationFormatted'])
         # printInfo1("Overall bit rate: %s bps" % line['overallBitRate'])
@@ -597,10 +597,10 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
             if line['expectedSubSize'] != "0":
                 printInfo1("Expected file size: %s B" % line['expectedSubSize'])
                 if line['subDlComment'] == dlCommentError:
-                    printError(dlCommentError)
+                    printError(line['subDlComment'])
                     shouldBeDeleted.append(line['subName'])
                 else:
-                    printInfo2(dlCommentSuccess) 
+                    printInfo2(line['subDlComment']) 
             printInfo1("File size: %s B" % line['subSize'])
             printInfo1("Number of lines: %s" % line['subLines'])
         else:
