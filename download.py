@@ -519,6 +519,8 @@ def getInfo(line, argument, verbose):
     args = shlex.split(cmd)
     process = Popen(args, stdout=PIPE, stderr=PIPE)
     output, error = process.communicate()
+    if verbose:
+        printInfo1(output.rstrip)
     return output.rstrip()
 
 def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose):
@@ -576,39 +578,45 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
     for line in infoDownloaded:
         printInfo1("\nVideo: %s" % line['videoName'])
         printScores()
+        if line['expectedDuration'] != "0.000":
+            printInfo1("Expected duration: %s" % (str(datetime.timedelta(seconds=int(line['expectedDuration'].rstrip("0").rstrip("."))))))
+        if verbose: 
+            printInfo1("Duration: %s ms" % line['duration'])
+        printInfo1("Duration: %s" % line['durationFormatted'])
         if line['videoDlComment'] == dlCommentError:
             printError(line['videoDlComment'])
             shouldBeDeleted.append(line['videoName'])
         else:
             printInfo2(line['videoDlComment'])
-            if line['videoDlComment'] == dlCommentExist:
-                if not compareDurations(int(str(line['expectedDuration']).rstrip("0").rstrip(".")), int(line['duration']) / 1000, verbose):
-                    printError("Durations does not match")
-                    shouldBeDeleted.append(line['videoName'])
-        # printInfo1("File size: %s b" % line['fileSize'])
+            if verbose:
+                printInfo1("Expected duration: %s s" % line['expectedDuration'])
+                printInfo1("Actual duration: %s s" % line['duration'])
+            if not compareDurations(int(str(line['expectedDuration']).rstrip("0").rstrip(".")), int(line['duration']) / 1000, verbose):
+                printError("Durations does not match")
+                shouldBeDeleted.append(line['videoName'])
+        if verbose:
+            printInfo1("File size: %s b" % line['fileSize'])
         printInfo1("File size: %s" % line['fileSizeMeasure'])
-        if line['expectedDuration'] != "0.000":
-            printInfo1("Expected duration: %s" % (str(datetime.timedelta(seconds=int(line['expectedDuration'].rstrip("0").rstrip(".")))))) 
-        # printInfo1("Duration: %s ms" % line['duration'])
-        printInfo1("Duration: %s" % line['durationFormatted'])
-        # printInfo1("Overall bit rate: %s bps" % line['overallBitRate'])
+        if verbose:
+            printInfo1("Overall bit rate: %s bps" % line['overallBitRate'])
         printInfo1("Overall bit rate: %s" % line['overallBitRateMeasure'])
 
         print
-        # printInfo1("Video format: %s" % line['videoFormat'])
-        # printInfo1("Video codec ID: %s" % line['videoCodecId'])
-        # printInfo1("Video bit rate: %s bps" % line['videoBitRate'])
-        # printInfo1("Video bit rate: %s" % line['videoBitRateMeasure'])
+        if verbose:
+            printInfo1("Video format: %s" % line['videoFormat'])
+            printInfo1("Video codec ID: %s" % line['videoCodecId'])
+            printInfo1("Video bit rate: %s bps" % line['videoBitRate'])
+            printInfo1("Video bit rate: %s" % line['videoBitRateMeasure'])
         printInfo1("Width: %s px" % line['width'])
         printInfo1("Height: %s px" % line['height'])
         printInfo1("Frame rate: %s fps" % line['frameRate'])
-        # printInfo1("Frame count: %s" % line['frameCount'])
-
-        # print
-        # printInfo1("Audio format: %s" % line['audioFormat'])
-        # printInfo1("Audio codec ID: %s" % line['audioCodecId'])
-        # printInfo1("Audio bit rate: %s bps" % line['audioBitRate'])
-        # printInfo1("Audio bit rate: %s" % line['audioBitRateMeasure'])
+        if verbose:
+            printInfo1("Frame count: %s" % line['frameCount'])
+            print
+            printInfo1("Audio format: %s" % line['audioFormat'])
+            printInfo1("Audio codec ID: %s" % line['audioCodecId'])
+            printInfo1("Audio bit rate: %s bps" % line['audioBitRate'])
+            printInfo1("Audio bit rate: %s" % line['audioBitRateMeasure'])
 
         if line['subLines'] != 'na':
             printInfo1("\nSubtitles: %s" % line['subName'])
