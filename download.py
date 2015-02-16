@@ -444,6 +444,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
 ############################### after download
 
 def compareDurations(expectedDuration, actualDuration, verbose):
+    if verbose:
+        printInfo1("Expected duration: %s" % expectedDuration)
+        printInfo1("Actual duration: %s" % actualDuration)
     if expectedDuration == 0:
         durationsMatch = True
         printWarning("Expected duration was 0\nSkipping checking...")
@@ -583,7 +586,9 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         else:
             printInfo2(line['videoDlComment'])
             if line['videoDlComment'] == dlCommentExist:
-                if not compareDurations(int(str(line['duration']).rstrip("0").rstrip(".")), int(line['duration']), verbose):
+                print("Expected duration: %s" % line['expectedDuration'])
+                print("Actual duration: %s" % line['duration'])
+                if not compareDurations(int(str(line['expectedDuration']).rstrip("0").rstrip(".")), int(line['duration']), verbose):
                     printError("Durations does not match")
                     shouldBeDeleted.append(line['videoName'])
         # printInfo1("File size: %s b" % line['fileSize'])
@@ -626,11 +631,11 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         else:
             printWarning("\nNo subtitles downloaded")
             
-        if shouldBeDeleted:
-            printWarning("\nThese files should be deleted and re downloaded")
-            printScores()
-            for line in shouldBeDeleted:
-                printInfo1(line)
+    if shouldBeDeleted:
+        printWarning("\nThese files should be deleted and re downloaded")
+        printScores()
+        for line in shouldBeDeleted:
+            printWarning(line)
             
             
             
