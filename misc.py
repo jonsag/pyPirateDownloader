@@ -50,6 +50,7 @@ videoText = config.get('textRecognition', 'videoText')
 
 dlCommentSuccess = config.get('textRecognition', 'dlCommentSuccess')
 dlCommentError = config.get('textRecognition', 'dlCommentError')
+dlCommentExist = config.get('textRecognition', 'dlCommentExist')
 
 resolveHost = False
 

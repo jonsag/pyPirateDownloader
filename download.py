@@ -12,7 +12,7 @@ from misc import (printInfo1, printInfo2, printScores, printWarning, printError,
                   ffmpegPath, avconvPath, avprobePath, maxTrys, uid, gid,
                   bashSuffix, getffmpegPath, getffprobePath, resolveHost, domainToIPno, 
                   numbering, continueWithProcess, runProcess, downloadFile, 
-                  onError, mask, group, dlCommentSuccess, dlCommentError)
+                  onError, mask, group, dlCommentSuccess, dlCommentError, dlCommentExist)
 
 from convert import convertDownloads
 
@@ -322,6 +322,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                             printInfo2("Trying again...")
                         reDownload = True
             else:
+                videoComment = dlCommentExist
                 break
 
         if subCmd:
@@ -370,6 +371,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                                 printInfo2("Trying again")
                             reDownload = True
                 else:
+                    subComment = dlCommentExist
                     break
 
         printInfo2("\nGetting file info...")
