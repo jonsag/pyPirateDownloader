@@ -51,7 +51,8 @@ videoText = config.get('textRecognition', 'videoText')
 dlCommentSuccess = config.get('textRecognition', 'dlCommentSuccess')
 dlCommentError = config.get('textRecognition', 'dlCommentError')
 dlCommentExist = config.get('textRecognition', 'dlCommentExist')
-
+dlCommentNoSub = config.get('textRecognition', 'dlCommentNoSub')
+                            
 resolveHost = False
 
 uid = os.getuid()

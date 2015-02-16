@@ -12,7 +12,8 @@ from misc import (printInfo1, printInfo2, printScores, printWarning, printError,
                   ffmpegPath, avconvPath, avprobePath, maxTrys, uid, gid,
                   bashSuffix, getffmpegPath, getffprobePath, resolveHost, domainToIPno, 
                   numbering, continueWithProcess, runProcess, downloadFile, 
-                  onError, mask, group, dlCommentSuccess, dlCommentError, dlCommentExist)
+                  onError, mask, group, dlCommentSuccess, dlCommentError, dlCommentExist, 
+                  dlCommentNoSub)
 
 from convert import convertDownloads
 
@@ -373,6 +374,8 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 else:
                     subComment = dlCommentExist
                     break
+        else:
+            subComment = dlCommentNoSub
 
         printInfo2("\nGetting file info...")
                     
