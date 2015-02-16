@@ -583,7 +583,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         else:
             printInfo2(line['videoDlComment'])
             if line['videoDlComment'] == dlCommentExist:
-                if not compareDurations(int(line['expectedDuration']), int(line['duration']), verbose):
+                if not compareDurations(int(str(line['duration']).rstrip("0").rstrip(".")), int(line['duration']), verbose):
                     printError("Durations does not match")
                     shouldBeDeleted.append(line['videoName'])
         # printInfo1("File size: %s b" % line['fileSize'])
