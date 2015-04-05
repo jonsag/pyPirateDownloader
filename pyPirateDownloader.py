@@ -17,6 +17,7 @@ from parsePage import parseURL
 
 url = ""
 dlList = ""
+urlsOnly = False
 name = ""
 bashOutFile = ""
 setQuality = ""
@@ -35,9 +36,10 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:o:b:q:c:f:hapiRskrnvh' ,
+    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:L:o:b:q:c:f:hapiRskrnvh' ,
                                  ['url=', 
                                   'list=', 
+                                  'urllist=', 
                                   'outfile=', 
                                   'bashfile=', 
                                   'quality=', 
@@ -67,6 +69,11 @@ for option, argument in myopts:
         dlList = argument
         if not os.path.isfile(dlList):
             onError(4, "%s is not a file" % dlList)
+    elif option in ('-L', '--urlList'):
+        dlList = argument
+        urlsOnly = True
+        if not os.path.isfile(dlList):
+            onError(51, "%s is not a file" % dlList)
     elif option in ('-o', '--outfile'):
         name = argument
     elif option in ('-b', '--bashfile'):
@@ -115,7 +122,9 @@ if not url and not dlList and not convertTo:
     onError(3, "No program part chosen")
 
 if url and not name and not parseText:
-    onError(5, "Option -u also requires setting option -o or -p")
+    #onError(5, "Option -u also requires setting option -o or -p")
+    name = "null"
+    onError(50, "Assuming you want to download single link with option -o")
 if url and parseText and not name:
     onError(6, "Option -u and -p also requires setting option -o")
 
@@ -127,9 +136,9 @@ if url and not convertTo and not parseText:
     finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
     
 elif dlList and not convertTo and not parseText:
-    downloads = dlListPart(dlList, setQuality, checkDuration, fileInfo, bestQuality, downloadAll, verbose)
+    downloads = dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQuality, downloadAll, verbose)
     finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
-    
+         
 elif url and parseText:
     parseURL(url, name, verbose)
     

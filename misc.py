@@ -68,7 +68,8 @@ def onError(errorCode, extra):
         usage(errorCode)
     elif errorCode in (4, 7 ,8 ,9, 
                        10, 11, 13, 14, 15, 16, 
-                       22):
+                       22, 
+                       51):
         printError(extra)
         sys.exit(errorCode)
     elif errorCode in (17, 18, 19):
@@ -77,6 +78,9 @@ def onError(errorCode, extra):
     elif errorCode in (20, 21, 23, 24, 25, 26, 27, 28, 29, 
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
                        40, 41, 42, 43, 44, 45, 46, 47, 48, 49):
+        printWarning(extra)
+        return
+    elif errorCode == 50:
         printWarning(extra)
         return
     else:
@@ -88,8 +92,10 @@ def usage(exitCode):
     printScores()
     printInfo1("%s -u <url> -o <out name>" % sys.argv[0])
     printInfo1("        Download <url> to <out name>")
-    printInfo1("\n%s -l <download list>" % sys.argv[0])
-    printInfo1("        Download urls from list, save as next line in list says")
+    printInfo1("        Leave out option -o to get file name from page title")
+    printInfo1("\n%s -l <download list> | -L <url list>" % sys.argv[0])
+    printInfo1("        -l: Download urls from list, save as next line in list says")
+    printInfo1("        -L: Download urls from list, get file name from page title")
     printInfo1("\n%s [url or download list] -s [-b <bash file name>]" % sys.argv[0])
     printInfo1("        Show downloads only")
     printInfo1("        [Create bash file to make downloads]")

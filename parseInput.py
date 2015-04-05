@@ -5,44 +5,55 @@
 import urllib2, re
 
 from time import sleep
+from BeautifulSoup import BeautifulSoup
 
 import xml.etree.ElementTree as ET
 
 from misc import (onError, printInfo1, printInfo2, printWarning,  
                   apiBaseUrl, getStreamsXML, printScores,
-                  maxTrys, waitTime,  
+                  maxTrys, waitTime, numbering, 
                   minVidBitRate, maxVidBitRate, minVidWidth, maxVidWidth) 
 
 from download import getDuration, getSubSize
 
 downloads = []
 
-def dlListPart(dlList, setQuality, checkDuration, fileInfo, bestQuality, downloadAll, verbose):
+def dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQuality, downloadAll, verbose):
     url = ""
     name = ""
-
+    downloads = []
+    
     dlList = open(dlList)
     lines = dlList.readlines()
     dlList.close()
 
-    for line in lines:
-        if len(line) > 1 and not line.startswith("#"):
-            if line.startswith("http") and not url:  # line is a url and url is not set
-                url = line
-            elif url and line.startswith("http"):  # url is already set and line is a url
-                onError(7, "Two urls in a row. Second should be a file name")
-            else:
-                name = line
+    if not urlsOnly:
+        for line in lines:
+            if len(line) > 1 and not line.startswith("#"):
+                if line.startswith("http") and not url:  # line is a url and url is not set
+                    url = line
+                elif url and line.startswith("http"):  # url is already set and line is a url
+                    onError(7, "Two urls in a row. Second should be a file name")
+                else:
+                    name = line
                 
-        if name and not url:
-            onError(9, "First line was not a url")
-        elif url and name:
-            downloads = parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
-            url = ""
-            name = ""
+            if name and not url:
+                onError(9, "First line was not a url")
+            elif url and name:
+                downloads = parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+                url = ""
+                name = ""
 
-    if url:
-        onError(8, "Last url did not have a following name")
+        if url:
+            onError(8, "Last url did not have a following name")
+
+    else:
+        name = "null"
+        for line in lines:
+            if len(line) > 1 and line.startswith("http"):
+                downloads = parseXML(line, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+
+                    
         
     return downloads
 
@@ -73,6 +84,8 @@ def parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDur
             trys += 1
             if trys > maxTrys:
                 onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+            if verbose:
+                printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
             try:
                 piratePlayXML = urllib2.urlopen(parseUrl)
             except urllib2.HTTPError, e:
@@ -103,6 +116,35 @@ def parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDur
             
         if gotAnswer and gotXML:
             break
+            
+    if name == "null":
+        trys = 0
+        printInfo2("Getting page title to use as file name...")
+        while True:
+            trys += 1
+            if trys > maxTrys:
+                onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+            if verbose:
+                printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
+            try:
+                html = urllib2.urlopen(url)
+            except urllib2.HTTPError, e:
+                onError(35, "HTTPError\n    %s\n    Trying again...\n" % str(e.code))
+                sleep(waitTime)
+            except urllib2.URLError, e:
+                onError(36, "URLError\n    %s\n    Trying again...\n" % str(e.reason))
+                sleep(waitTime)
+            except:
+                onError(37, "Error\n    Trying again...\n")
+                sleep(waitTime)
+            else:
+                if verbose:
+                    printInfo1("Got answer")
+                soup = BeautifulSoup(html)
+                name = soup.title.string.encode('utf-8')
+                if verbose:
+                    printInfo1("Setting name to %s" % name)
+                break
 
     for xmlChild in xmlRoot:
 
