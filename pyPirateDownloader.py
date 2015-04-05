@@ -22,7 +22,10 @@ bashOutFile = ""
 setQuality = ""
 convertTo = ""
 videoInFile = ""
+bestQuality = False
+downloadAll = False
 parseText = False
+fileInfo = False
 reEncode = False
 listOnly = False
 verbose = False
@@ -32,7 +35,7 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:o:b:q:c:f:pRskrnvh' ,
+    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:o:b:q:c:f:hapiRskrnvh' ,
                                  ['url=', 
                                   'list=', 
                                   'outfile=', 
@@ -40,7 +43,10 @@ try:
                                   'quality=', 
                                   'convert=', 
                                   'file=', 
+                                  'highest', 
+                                  'all',
                                   'parsetext', 
+                                  'info', 
                                   'reencode', 
                                   'show', 
                                   'keepold', 
@@ -72,8 +78,15 @@ for option, argument in myopts:
         convertTo = argument.lower()
     elif option in ('-f', '--file'):
         videoInFile = argument
+    elif option in ('-h', '--highest'):
+        bestQuality = True
+    elif option in ('-a', '--all'):
+        downloadAll = True
+        fileInfo = True
     elif option in ('-p', '--parsetext'):
         parseText = True
+    elif option in ('-i', '--info'):
+        fileInfo = True
     elif option in ('-R', '--reencode'):
         reEncode = True
     elif option in ('-s', '--show'):
@@ -90,6 +103,14 @@ for option, argument in myopts:
     elif option in ('-h', '--help'):
         usage(0)
         
+if bestQuality and setQuality:
+    setQuality = ""
+    onError(48, "You can't set both -h and -q\nPrioritizing -h")
+    
+if bestQuality and downloadAll:
+    bestQuality = False
+    onError(49, "You can't set both -h and -a\nPrioritizing -a")
+        
 if not url and not dlList and not convertTo:
     onError(3, "No program part chosen")
 
@@ -102,11 +123,11 @@ if reDownload and keepOld:
     onError(11, "You can't select both --keepold (-k) and --redownload (-r)") 
         
 if url and not convertTo and not parseText:
-    downloads = parseXML(url, name, setQuality, checkDuration, verbose)
+    downloads = parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
     finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
     
 elif dlList and not convertTo and not parseText:
-    downloads = dlListPart(dlList, setQuality, checkDuration, verbose)
+    downloads = dlListPart(dlList, setQuality, checkDuration, fileInfo, bestQuality, downloadAll, verbose)
     finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
     
 elif url and parseText:

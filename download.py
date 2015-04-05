@@ -445,6 +445,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
 
 def compareDurations(expectedDuration, actualDuration, verbose):
     if verbose:
+        printInfo2("Comparing durations...")
         printInfo1("Expected duration: %s s" % expectedDuration)
         printInfo1("Actual duration: %s s" % actualDuration)
     if expectedDuration == 0:
@@ -634,10 +635,13 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
             printWarning("\nNo subtitles downloaded")
             
     if shouldBeDeleted:
-        printWarning("\nThese files should be deleted and re downloaded")
+        print
+        printError("\nThese files should be deleted and re downloaded")
         printScores()
         for line in shouldBeDeleted:
             printWarning(line)
+        
+    print
             
             
             

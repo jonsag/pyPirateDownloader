@@ -17,7 +17,7 @@ from download import getDuration, getSubSize
 
 downloads = []
 
-def dlListPart(dlList, setQuality, checkDuration, verbose):
+def dlListPart(dlList, setQuality, checkDuration, fileInfo, bestQuality, downloadAll, verbose):
     url = ""
     name = ""
 
@@ -37,7 +37,7 @@ def dlListPart(dlList, setQuality, checkDuration, verbose):
         if name and not url:
             onError(9, "First line was not a url")
         elif url and name:
-            downloads = parseXML(url, name, setQuality, checkDuration, verbose)
+            downloads = parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
             url = ""
             name = ""
 
@@ -46,10 +46,13 @@ def dlListPart(dlList, setQuality, checkDuration, verbose):
         
     return downloads
 
-def parseXML(url, name, setQuality, checkDuration, verbose):
+def parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose):
     vidBitRate = 0
     vidWidth = 0
     
+    currentQuality = 0
+    lastQuality = 0
+    downloads = []
     gotAnswer = False
     trys = 0
     gotXML = False
@@ -108,6 +111,7 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
             printInfo1("\nQuality: %s" % quality)
         else:
             quality = "null"
+            currentQuality = 1
             printWarning("No quality stated: %s" % quality)
 
         if 'suffix-hint' in xmlChild.attrib:
@@ -148,68 +152,48 @@ def parseXML(url, name, setQuality, checkDuration, verbose):
 
         if "bps" in quality:  # quality is probably bitrate: xxx kbps
             vidBitRate = int(re.sub("\D", "", quality))
+            currentQuality = vidBitRate
         elif "x" in quality:  # quality is probably resolution: width x height
             vidRes = quality.split("x")
             vidWidth = int(vidRes[0])
-        
-        if quality == "null":
-            streamDuration = getDuration(videoStream, checkDuration, verbose)
-            if subtitles:
-                subSize = getSubSize(subtitles, checkDuration, verbose)
-            else:
-                printInfo2("No subtitles to download")
-                subSize = 0
-            downloads.append({'address': videoStream,
-                              'suffix': suffixHint,
-                              'subs': subtitles,
-                              'name': name,
-                              'quality': quality,
-                              'duration': streamDuration,
-                              'subSize': subSize})
-            printInfo2("Added %s to download list" % quality)
-        else:                                
-            if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
-                streamDuration = getDuration(videoStream, checkDuration, verbose)
-                if subtitles:
-                    subSize = getSubSize(subtitles, checkDuration, verbose)
-                else:
-                    subSize = 0
-                downloads.append({'address': videoStream,
-                                  'suffix': suffixHint,
-                                  'subs': subtitles,
-                                  'name': name,
-                                  'quality': quality,
-                                  'duration': streamDuration,
-                                  'subSize': subSize})
-                printInfo2("Added %s to download list" % quality)
-            elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
-                streamDuration = getDuration(videoStream, checkDuration, verbose)
-                if subtitles:
-                    subSize = getSubSize(subtitles, checkDuration, verbose)
-                else:
-                    subSize = 0
-                downloads.append({'address': videoStream,
-                                  'suffix': suffixHint,
-                                  'subs': subtitles,
-                                  'name': name,
-                                  'quality': quality,
-                                  'duration': streamDuration,
-                                  'subSize': subSize})
-                printInfo2("Added %s to download list" % quality)
-            elif setQuality:
-                if setQuality == vidBitRate or setQuality == vidWidth:
-                    streamDuration = getDuration(videoStream, checkDuration, verbose)
-                    if subtitles:
-                        subSize = getSubSize(subtitles, checkDuration, verbose)
-                    else:
-                        subSize = 0
-                    downloads.append({'address': videoStream,
-                                      'suffix': suffixHint,
-                                      'subs': subtitles,
-                                      'name': name,
-                                      'quality': quality,
-                                      'duration': streamDuration,
-                                      'subSize': subSize})
-                    printInfo2("Added %s to download list" % quality)     
+            currentQuality = vidWidth
+            
+        if bestQuality:
+            if currentQuality > lastQuality:
+                downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
+                lastQuality = currentQuality
+        else:
+            if downloadAll:
+                downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
+            elif quality == "null":
+                downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
+            else:                                
+                if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
+                    downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
+                elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
+                    downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
+                elif setQuality:
+                    if setQuality == vidBitRate or setQuality == vidWidth:
+                        downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)     
                     
+    return downloads
+
+def addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose):
+    streamDuration = getDuration(videoStream, checkDuration, verbose)
+    if subtitles:
+        subSize = getSubSize(subtitles, checkDuration, verbose)
+    else:
+        printInfo2("No subtitles to download")
+        subSize = 0
+    if fileInfo:
+        name = "%s.%s" % (name, quality)
+    downloads.append({'address': videoStream,
+                      'suffix': suffixHint,
+                      'subs': subtitles,
+                      'name': name,
+                      'quality': quality,
+                      'duration': streamDuration,
+                      'subSize': subSize})
+    printInfo2("Added %s to download list" % quality)
+    
     return downloads

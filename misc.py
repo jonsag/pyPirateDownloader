@@ -76,7 +76,7 @@ def onError(errorCode, extra):
         sys.exit(0)
     elif errorCode in (20, 21, 23, 24, 25, 26, 27, 28, 29, 
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
-                       40, 41, 42, 43, 44, 45, 46, 47):
+                       40, 41, 42, 43, 44, 45, 46, 47, 48, 49):
         printWarning(extra)
         return
     else:
@@ -104,6 +104,9 @@ def usage(exitCode):
     printInfo1("    -c <video format> converts downloaded video")
     printInfo1("    -q <quality> set quality for download")
     printInfo1("    -n don't check durations")
+    printInfo1("    -i add file info to file name")
+    printInfo1("    -h download the file with highest quality")
+    printInfo1("    -a download all files")
     printInfo1("    -k keep temporary files and old downloads. Default saves nothing")
     printInfo1("    -r redownload even if file exists. Default skips if file exists")
     printInfo1("   (-R reencode video)")
