@@ -104,10 +104,10 @@ def getDuration(stream, checkDuration, verbose):
         printWarning("Duration check disabled")
         printWarning("Setting duration to %s" % duration)
         
-    #printInfo1("Duration: %s s (%s)" % (duration,
-    #                                    str(datetime.timedelta(seconds=int(duration.rstrip("0").rstrip("."))))))
     printInfo1("Duration: %s s (%s)" % (duration,
-                                        round(float(duration))))
+                                        str(datetime.timedelta(seconds=float(duration.rstrip("0").rstrip("."))))))
+    #printInfo1("Duration: %s s (%s)" % (duration,
+    #                                    round((duration))))
                  
     return duration
 
