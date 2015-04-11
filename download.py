@@ -83,7 +83,7 @@ def getDuration(stream, checkDuration, verbose):
                         if 'duration' in xmlChild.attrib:
                             duration = xmlChild.attrib['duration']
                             if verbose:
-                                printInfo1("Found duration in XML")
+                                printInfo1("Found duration in XML: %s" % duration)
                             gotXML = True
                            
                     if not duration and verbose:
