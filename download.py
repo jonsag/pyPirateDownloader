@@ -107,7 +107,7 @@ def getDuration(stream, checkDuration, verbose):
     #printInfo1("Duration: %s s (%s)" % (duration,
     #                                    str(datetime.timedelta(seconds=int(duration.rstrip("0").rstrip("."))))))
     printInfo1("Duration: %s s (%s)" % (duration,
-                                        round(duration)))
+                                        round(int(duration))))
                  
     return duration
 
