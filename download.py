@@ -104,9 +104,11 @@ def getDuration(stream, checkDuration, verbose):
         printWarning("Duration check disabled")
         printWarning("Setting duration to %s" % duration)
         
+    #printInfo1("Duration: %s s (%s)" % (duration,
+    #                                    str(datetime.timedelta(seconds=int(duration.rstrip("0").rstrip("."))))))
     printInfo1("Duration: %s s (%s)" % (duration,
-                                        str(datetime.timedelta(seconds=int(duration.rstrip("0").rstrip("."))))))
-       
+                                        round(duration)))
+                 
     return duration
 
 def getSubSize(subAddress, checkDuration, verbose):
