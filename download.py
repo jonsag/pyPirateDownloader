@@ -105,7 +105,7 @@ def getDuration(stream, checkDuration, verbose):
         printWarning("Setting duration to %s" % duration)
         
     printInfo1("Duration: %s s (%s)" % (duration.rstrip("0").rstrip("."),
-                                        str(datetime.timedelta(seconds=float(duration)))))
+                                        str(datetime.timedelta(seconds=round(float(duration), 2)))))
                  
     return duration
 
@@ -580,7 +580,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         printInfo1("\nVideo: %s" % line['videoName'])
         printScores()
         if line['expectedDuration'] != "0.000":
-            printInfo1("Expected duration: %s" % (str(datetime.timedelta(seconds=float(line['expectedDuration'])))))
+            printInfo1("Expected duration: %s" % (str(datetime.timedelta(seconds=round(float(line['expectedDuration']), 2)))))
         if verbose: 
             printInfo1("Duration: %s ms" % line['duration'])
         printInfo1("Duration: %s" % line['durationFormatted'])
