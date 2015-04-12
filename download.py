@@ -461,7 +461,7 @@ def compareDurations(expectedDuration, actualDuration, verbose):
 
 def checkDurations(line, verbose):
     printScores()
-    expectedDuration = int(str(line['duration']).rstrip("0").rstrip("."))
+    expectedDuration = round(float(str(line['duration'])), 2)
     downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
     printInfo1("Expected duration: %d s (%s)" % (expectedDuration, str(datetime.timedelta(seconds=expectedDuration))))
     printInfo1("Downloaded duration: %d s (%s)" % (downloadedDuration, str(datetime.timedelta(seconds=downloadedDuration))))
