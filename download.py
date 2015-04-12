@@ -300,7 +300,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                     printInfo2("Trying again...")
                     reDownload = True
                 else:
-                    if checkDuration and float(str(line['duration']).rstrip("0").rstrip(".")) > 0:
+                    if checkDuration and float(str(line['duration'])) > 0:
                         durationOK = checkDurations(line, verbose)
                     else:
                         if verbose:
@@ -580,7 +580,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
         printInfo1("\nVideo: %s" % line['videoName'])
         printScores()
         if line['expectedDuration'] != "0.000":
-            printInfo1("Expected duration: %s" % (str(datetime.timedelta(seconds=int(line['expectedDuration'].rstrip("0").rstrip("."))))))
+            printInfo1("Expected duration: %s" % (str(datetime.timedelta(seconds=float(line['expectedDuration'])))))
         if verbose: 
             printInfo1("Duration: %s ms" % line['duration'])
         printInfo1("Duration: %s" % line['durationFormatted'])
