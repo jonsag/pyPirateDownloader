@@ -300,7 +300,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                     printInfo2("Trying again...")
                     reDownload = True
                 else:
-                    if checkDuration and float(str(line['duration'])) > 0:
+                    if checkDuration and float(line['duration']) > 0:
                         durationOK = checkDurations(line, verbose)
                     else:
                         if verbose:
@@ -461,7 +461,7 @@ def compareDurations(expectedDuration, actualDuration, verbose):
 
 def checkDurations(line, verbose):
     printScores()
-    expectedDuration = round(float(str(line['duration'])), 2)
+    expectedDuration = round(float(line['duration']), 2)
     downloadedDuration = int(getInfo(line, '--Inform="General;%Duration%"', verbose)) / 1000
     printInfo1("Expected duration: %d s (%s)" % (expectedDuration, str(datetime.timedelta(seconds=expectedDuration))))
     printInfo1("Downloaded duration: %d s (%s)" % (downloadedDuration, str(datetime.timedelta(seconds=downloadedDuration))))
@@ -592,7 +592,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
             if verbose:
                 printInfo1("Expected duration: %s s" % line['expectedDuration'])
                 printInfo1("Actual duration: %s s" % line['duration'])
-            if not compareDurations(int(str(line['expectedDuration']).rstrip("0").rstrip(".")), int(line['duration']) / 1000, verbose):
+            if not compareDurations(float(line['expectedDuration']), float(line['duration']) / 1000, verbose):
                 printError("Durations does not match")
                 shouldBeDeleted.append(line['videoName'])
         if verbose:
