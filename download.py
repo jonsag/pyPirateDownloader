@@ -104,10 +104,8 @@ def getDuration(stream, checkDuration, verbose):
         printWarning("Duration check disabled")
         printWarning("Setting duration to %s" % duration)
         
-    printInfo1("Duration: %s s (%s)" % (duration,
-                                        str(datetime.timedelta(seconds=float(duration.rstrip("0").rstrip("."))))))
-    #printInfo1("Duration: %s s (%s)" % (duration,
-    #                                    round((duration))))
+    printInfo1("Duration: %s s (%s)" % (duration.rstrip("0").rstrip("."),
+                                        str(datetime.timedelta(seconds=float(duration)))))
                  
     return duration
 
@@ -302,7 +300,7 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                     printInfo2("Trying again...")
                     reDownload = True
                 else:
-                    if checkDuration and int(str(line['duration']).rstrip("0").rstrip(".")) > 0:
+                    if checkDuration and float(str(line['duration']).rstrip("0").rstrip(".")) > 0:
                         durationOK = checkDurations(line, verbose)
                     else:
                         if verbose:
