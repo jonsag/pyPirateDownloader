@@ -521,8 +521,8 @@ def getInfo(line, argument, verbose):
     args = shlex.split(cmd)
     process = Popen(args, stdout=PIPE, stderr=PIPE)
     output, error = process.communicate()
-    #if verbose:
-    #    printInfo1(output.rstrip)
+    if verbose:
+        printInfo1(output.rstrip())
     return output.rstrip()
 
 def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose):
