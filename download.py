@@ -593,7 +593,7 @@ def finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, b
             if verbose:
                 printInfo1("Expected duration: %s s" % line['expectedDuration'])
                 printInfo1("Actual duration: %s s" % line['duration'])
-            if not compareDurations(float(line['expectedDuration']), int(line['duration']) / 1000, verbose):
+            if not compareDurations(float(line['expectedDuration']), float(line['duration']) / 1000, verbose):
                 printError("Durations does not match")
                 shouldBeDeleted.append(line['videoName'])
         if verbose:
