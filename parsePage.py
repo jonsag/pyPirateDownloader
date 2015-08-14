@@ -4,6 +4,8 @@
 
 import urllib2, requests, codecs
 
+from urlparse import urlparse, urljoin
+
 from time import sleep
 
 from HTMLParser import HTMLParser
@@ -57,6 +59,11 @@ def getPages(url, verbose):
     pageNo = 1
     videos = []
     
+    parsed_uri = urlparse( url )
+    domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    if verbose:
+        printInfo1("Domain is: %s" % domain)
+    
     while True:
         printInfo1("\nGetting page %s..." % pageNo)
         printInfo1("URL: %s" % "%s/?sida=%s" % (url, pageNo))
@@ -90,14 +97,14 @@ def getPages(url, verbose):
             pageNo += 1
             if gotAnswer:      
                 sourceCode = source.read()
-                videos = findVideos(sourceCode, videos, verbose)
+                videos = findVideos(url, sourceCode, videos, verbose)
         else:
             printInfo1("\nNo more videos")
             break
         
     return videos
     
-def findVideos(sourceCode, videos, verbose): 
+def findVideos(domain, sourceCode, videos, verbose): 
     gotSeason = False
     gotURL = False
     
@@ -133,6 +140,12 @@ def findVideos(sourceCode, videos, verbose):
         if gotURL:
             if not gotSeason:
                 season = "None"
+            url = urljoin(domain, url)
+            if verbose:
+                printInfo1("Adding...")
+                printInfo1("URL: %s" % url)
+                printInfo1("Season: %s" % season)
+                printInfo1("Episode title: %s" % episodeTitle)               
             videos.append({'url': url, 
                            'season': season, 
                            'episodeTitle': episodeTitle})
