@@ -79,6 +79,7 @@ def getDuration(stream, checkDuration, verbose):
                 else:
                     if verbose:
                         printInfo1("Downloaded a valid XML")
+                        print output
                     for xmlChild in xmlRoot:
                         if 'duration' in xmlChild.attrib:
                             duration = xmlChild.attrib['duration']
