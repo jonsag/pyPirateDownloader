@@ -172,14 +172,24 @@ def ffmpegDownloadCommand(line, verbose):
         url = line['address']
     
     if ffmpeg == ffmpegPath:
-        cmd = (
-               "%s -i %s"
-               " -acodec copy -vcodec copy -absf aac_adtstoasc -timeout 1000"
-               " '%s.%s'"
-               % (ffmpeg,
-                  url,
-                  line['name'].rstrip(), line['suffix'])
-               )
+        if verbose:
+            cmd = (
+                   "%s -i %s"
+                   " -loglevel debug -acodec copy -vcodec copy -absf aac_adtstoasc -timeout 1000"
+                   " '%s.%s'"
+                   % (ffmpeg,
+                      url,
+                      line['name'].rstrip(), line['suffix'])
+                   )
+        else:
+            cmd = (
+                   "%s -i %s"
+                   " -stats -loglevel fatal -acodec copy -vcodec copy -absf aac_adtstoasc -timeout 1000"
+                   " '%s.%s'"
+                   % (ffmpeg,
+                      url,
+                      line['name'].rstrip(), line['suffix'])
+                   )
     elif ffmpeg == avconvPath:
         cmd = (
                "%s -i %s"
