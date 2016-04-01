@@ -175,7 +175,7 @@ def ffmpegDownloadCommand(line, verbose):
         if verbose:
             cmd = (
                    "%s -i %s"
-                   " -loglevel debug -acodec copy -vcodec copy -absf aac_adtstoasc -timeout 1000"
+                   " -loglevel verbose -acodec copy -vcodec copy -absf aac_adtstoasc -timeout 1000"
                    " '%s.%s'"
                    % (ffmpeg,
                       url,

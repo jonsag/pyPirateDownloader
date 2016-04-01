@@ -29,6 +29,8 @@ def dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQualit
 
     if not urlsOnly:
         for line in lines:
+            if verbose:
+                printInfo2("Parsing line: %s" % line)
             if len(line) > 1 and not line.startswith("#"):
                 if line.startswith("http") and not url:  # line is a url and url is not set
                     url = line
