@@ -8,6 +8,10 @@ from subprocess import Popen, PIPE
 from colorama import init, deinit
 from termcolor import colored
 from urlparse import urlparse
+from time import sleep
+
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 
 config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__)))  # read config file
@@ -68,8 +72,7 @@ def onError(errorCode, extra):
         usage(errorCode)
     elif errorCode in (4, 7 ,8 ,9, 
                        10, 11, 13, 14, 15, 16, 
-                       22, 
-                       51):
+                       22, 51, 52, 55):
         printError(extra)
         sys.exit(errorCode)
     elif errorCode in (17, 18, 19):
@@ -77,7 +80,7 @@ def onError(errorCode, extra):
         sys.exit(0)
     elif errorCode in (20, 21, 23, 24, 25, 26, 27, 28, 29, 
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
-                       40, 41, 42, 43, 44, 45, 46, 47, 48, 49):
+                       40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 53, 54):
         printWarning(extra)
         return
     elif errorCode == 50:
@@ -327,3 +330,77 @@ def domainToIPno(url, verbose):
     newUrl = "%s://%s%s?%s" % (scheme, ip, path, query)
         
     return (newUrl)
+
+def checkLink(url, verbose):
+    linkOK = False
+    linkError = ""
+    trys = 0
+    
+    ##### check if url is valid
+    if verbose:
+        printInfo2("Checking if %s is a valid URL..." % url)
+    
+    val = URLValidator()
+    
+    try:
+        val(url)
+        linkOK = True
+        if verbose:
+            printInfo1("URL is valid")
+    except ValidationError, e:
+        linkOK = False
+        linkError = "URL is  malformed"
+        
+    ##### check if url exists
+    if linkOK:
+        if verbose:
+            printInfo2("Checking if %s exists..." % url)
+        while True:
+            trys += 1
+            if trys > maxTrys:
+                onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+            if verbose:
+                printInfo2("%s%s try..." % (trys, numbering(trys, verbose)))
+            
+            try:
+                urllib2.urlopen(url)
+                break
+            except urllib2.HTTPError, e:
+                onError(53, "Got error code %s "  % e.code)
+                linkOK = False
+                linkError = "Error code: %s" % e.code
+            except urllib2.URLError, e:
+                onError(54, "Got error: %s" % e.args)
+                linkOK = False
+                linkError = e.args
+        
+    return linkOK, linkError
+
+def getWebPage(url, verbose):
+    firstPage = ""
+    trys = 0
+    if verbose:
+        printInfo2("Downloading web page...")
+    while True:
+        trys += 1
+        if trys > maxTrys:
+            onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+        if verbose:
+            printInfo2("%s%s try..." % (trys, numbering(trys, verbose)))
+        try:
+            firstPage = urllib2.urlopen(url)
+        except urllib2.HTTPError, e:
+            onError(35, "HTTPError\n    %s\n    Trying again...\n" % str(e.code))
+            sleep(waitTime)
+        except urllib2.URLError, e:
+            onError(36, "URLError\n    %s\n    Trying again...\n" % str(e.reason))
+            sleep(waitTime)
+        except:
+            onError(37, "Error\n    Trying again...\n")
+            sleep(waitTime)
+        else:
+            if verbose:
+                printInfo1("Got answer")
+            break
+        
+    return firstPage
