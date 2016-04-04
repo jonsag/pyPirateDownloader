@@ -61,11 +61,6 @@ def checkSecondSvtPage(url, verbose):
     else:
         printError("Did not find second tag") 
     
-    #soup = BeautifulSoup(secondTag)
-    #items = soup.findAll("videoreferences")
-    #print "Items: %s" % items
-    #secondTag = items[0]
-    
     if verbose:
         printInfo2("Converting to json...")
 
