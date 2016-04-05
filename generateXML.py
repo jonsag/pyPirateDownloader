@@ -5,23 +5,9 @@
 import sys, getopt
 
 from misc import (printScores, printInfo1, printError, 
-                  getWebPage, checkLink)
+                  getWebPage, checkLink, onError)
 
 from svtPlay import svtPlayXML
-
-def onError(errorCode, extra):
-    printError("\nError %s:" % errorCode)
-    if errorCode in (1, 2):
-        printError(extra)
-        usage(errorCode)
-    elif errorCode in (3, 4, 5, 10):
-        printError(extra)
-        sys.exit(errorCode)
-    elif errorCode in (35, 36, 37):
-        printError(extra)
-    else:
-        printError("Unkown")
-        sys.exit(errorCode)
         
 def usage(exitCode):
     printInfo1("\nUsage:")
@@ -38,10 +24,10 @@ try:
                                   'verbose'])
 
 except getopt.GetoptError as e:
-    onError(1, str(e))
+    onError(56, str(e))
 
 if len(sys.argv) == 1:  # no options passed
-    onError(2, "No options given")
+    onError(57, "No options given")
     
 for option, argument in myopts:
     if option in ('-u', '--url'):
@@ -50,11 +36,12 @@ for option, argument in myopts:
         verbose = True
 
 def extractLinks(url, verbose):
+    haltOnError = True
     
-    linkOK, linkError = checkLink(url, verbose)
+    linkOK, linkError = checkLink(url, haltOnError, verbose)
 
     if not linkOK:
-        onError(3,linkError)
+        onError(58,linkError)
     else:
         if verbose:
             printInfo1("Link OK")
@@ -64,14 +51,15 @@ def extractLinks(url, verbose):
     if firstPage:
         if "svtplay" in url.lower():
             xmlCode = svtPlayXML(firstPage, verbose)
+            xmlCode = '\n'.join(xmlCode)
             if not xmlCode:
-                onError(5, "Could not find any stream")
+                onError(60, "Could not find any stream")
             else:
-                if verbose:
+                if verbose or not verbose:
                     printInfo1("XML code:")
                     print xmlCode
     else:
-        onError(4, "Could not download webpage")
+        onError(59, "Could not download webpage")
     
 extractLinks(url, verbose)
     

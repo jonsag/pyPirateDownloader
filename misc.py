@@ -64,15 +64,26 @@ gid = grp.getgrnam(group).gr_gid
 
 # rtmpdumpOptions = config.get('rtmpdump', 'rtmpdumpOptions')
 
+# 1,2,3,4,5,6,7,8,9
+# 10,11,12,13,14,15,16,17,18,19
+# 20,21,22,23,24,25,26,27,28,29
+# 30,31,32,33,34,35,36,37,38,39
+# 40,41,42,43,44,45,46,47,48,49
+# 50,51,52,53,54,55,56,57,58,59
+# 60,61,62
+
 def onError(errorCode, extra):
     printError("\nError %s:" % errorCode)
     if errorCode in (1, 2, 3, 5, 6, 
-                     12):
+                     12, 
+                     56, 57):
         printError(extra)
         usage(errorCode)
     elif errorCode in (4, 7 ,8 ,9, 
                        10, 11, 13, 14, 15, 16, 
-                       22, 51, 52, 55):
+                       22, 
+                       51, 52, 55, 58, 59,
+                       60, 61):
         printError(extra)
         sys.exit(errorCode)
     elif errorCode in (17, 18, 19):
@@ -80,7 +91,9 @@ def onError(errorCode, extra):
         sys.exit(0)
     elif errorCode in (20, 21, 23, 24, 25, 26, 27, 28, 29, 
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
-                       40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 53, 54):
+                       40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 
+                       53, 54,
+                       62):
         printWarning(extra)
         return
     elif errorCode == 50:
@@ -331,7 +344,7 @@ def domainToIPno(url, verbose):
         
     return (newUrl)
 
-def checkLink(url, verbose):
+def checkLink(url, exitOnError, verbose):
     linkOK = False
     linkError = ""
     trys = 0
@@ -358,21 +371,36 @@ def checkLink(url, verbose):
         while True:
             trys += 1
             if trys > maxTrys:
-                onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+                if exitOnError:
+                    onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+                elif verbose:
+                    onError(62, "Tried connecting %s times. Giving up..." % (trys - 1))
+                break
             if verbose:
                 printInfo2("%s%s try..." % (trys, numbering(trys, verbose)))
             
             try:
                 urllib2.urlopen(url)
-                break
             except urllib2.HTTPError, e:
-                onError(53, "Got error code %s "  % e.code)
+                if verbose or exitOnError:
+                    onError(53, "Got error code %s "  % e.code)
                 linkOK = False
                 linkError = "Error code: %s" % e.code
             except urllib2.URLError, e:
-                onError(54, "Got error: %s" % e.args)
+                if verbose or exitOnError:
+                    onError(54, "Got error: %s" % e.args)
                 linkOK = False
                 linkError = e.args
+            else:
+                break
+                
+    if verbose:
+        if linkOK:
+            printInfo1("Got OK answer from web server")
+        else:
+            printWarning("Did not get correct answer from web server")
+            
+        
         
     return linkOK, linkError
 
