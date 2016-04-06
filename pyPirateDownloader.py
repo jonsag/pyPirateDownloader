@@ -5,7 +5,7 @@
 import getopt, sys, os
 
 from misc import (usage, onError, 
-                  )
+                  defaultXmlSource)
 
 from parseInput import parseXML, dlListPart
 
@@ -36,7 +36,7 @@ checkDuration = True
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:L:o:b:q:c:f:hapiRskrnvh' ,
+    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:L:o:b:q:c:f:x:hapiRskrnvh' ,
                                  ['url=', 
                                   'list=', 
                                   'urllist=', 
@@ -45,6 +45,7 @@ try:
                                   'quality=', 
                                   'convert=', 
                                   'file=', 
+                                  'xmlsource='
                                   'highest', 
                                   'all',
                                   'parsetext', 
@@ -85,6 +86,8 @@ for option, argument in myopts:
         convertTo = argument.lower()
     elif option in ('-f', '--file'):
         videoInFile = argument
+    elif option in ('-x', '--xmlsource'):
+        xmlSource = argument.lower()
     elif option in ('-h', '--highest'):
         bestQuality = True
     elif option in ('-a', '--all'):
@@ -130,6 +133,10 @@ if url and parseText and not name:
 
 if reDownload and keepOld:
     onError(11, "You can't select both --keepold (-k) and --redownload (-r)") 
+    
+if not xmlSource in ('pirateplay', 'local', 'python'):
+    onError(63, "'%s' is not a valid option for -x, --xmlsource\nSetting it to %s" % (xmlSource, defaultXmlSource))
+    xmlSource = defaultXmlSource
         
 if url and not convertTo and not parseText:
     downloads = parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)

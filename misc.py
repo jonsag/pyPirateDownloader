@@ -16,7 +16,9 @@ from django.core.exceptions import ValidationError
 config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__)))  # read config file
 
-apiBaseUrl = config.get('pirateplay', 'apiBaseUrl')  # base url for pirateplay.se api
+apiBaseUrlLocal = config.get('pirateplay', 'apiBaseUrlLocal')
+apiBaseUrlPiratePlay = config.get('pirateplay', 'apiBaseUrlPiratePlay')
+defaultXmlSource = config.get('pirateplay', 'defaultXmlSource')
 getStreamsXML = config.get('pirateplay', 'getStreamsXML')  # get streams from pirateplay.se using XML
 getStreamsJson = config.get('pirateplay', 'getStreamsJson')  # get streams from pirateplay.se using json
 maxTrys = int(config.get('pirateplay', 'maxTrys'))
@@ -56,7 +58,8 @@ dlCommentSuccess = config.get('textRecognition', 'dlCommentSuccess')
 dlCommentError = config.get('textRecognition', 'dlCommentError')
 dlCommentExist = config.get('textRecognition', 'dlCommentExist')
 dlCommentNoSub = config.get('textRecognition', 'dlCommentNoSub')
-                            
+
+apiBaseUrl = apiBaseUrlLocal                           
 resolveHost = False
 
 uid = os.getuid()
@@ -70,7 +73,7 @@ gid = grp.getgrnam(group).gr_gid
 # 30,31,32,33,34,35,36,37,38,39
 # 40,41,42,43,44,45,46,47,48,49
 # 50,51,52,53,54,55,56,57,58,59
-# 60,61,62
+# 60,61,62,63
 
 def onError(errorCode, extra):
     printError("\nError %s:" % errorCode)
@@ -93,8 +96,8 @@ def onError(errorCode, extra):
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
                        40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 
                        53, 54,
-                       62):
-        printWarning(extra)
+                       62, 63):
+        printWarning("%s\n" % extra)
         return
     elif errorCode == 50:
         printWarning(extra)
