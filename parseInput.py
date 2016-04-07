@@ -66,6 +66,7 @@ def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, check
     gotAnswer = False
     trys = 0
     gotXML = False
+    xmlRoot = ""
     
     if verbose:
         printInfo2("Getting XML...")
@@ -81,33 +82,34 @@ def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, check
         #sys.exit()
         xmlCode = extractLinks(url, verbose)
         if xmlCode:
+            if verbose:
+                printInfo1("Got XML")
+                printInfo2("Decoding XML...")
             xmlRoot = ET.fromstring(xmlCode)
-        else:
-            xmlRoot = ""
             
     exitOnError = False
-    if prioritizeApiBaseUrlLocal:
-        parsed_uri = urlparse(apiBaseUrlLocal)
-        localPiratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-        linkOK, linkError = checkLink(localPiratePlayDomain, exitOnError, verbose)
-        if linkOK:
-            apiBaseUrl = apiBaseUrlLocal
-        else:
-            onError(65, "Could not connect to %s" % apiBaseUrlLocal)
-            apiBaseUrl = apiBaseUrlPiratePlay
-    else:
-        parsed_uri = urlparse(apiBaseUrlPiratePlay)
-        piratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-        linkOK, linkError = checkLink(piratePlayDomain, exitOnError, verbose)
-        if linkOK:
-            apiBaseUrl = apiBaseUrlPiratePlay
-        else:
-            onError(65, "Could not connect to %s" % apiBaseUrlPiratePlay)
-            apiBaseUrl = apiBaseUrlLocal
-    if verbose:
-        printInfo1("Using %s as source for getting XML")
-    
     if not xmlRoot:
+        if prioritizeApiBaseUrlLocal:
+            parsed_uri = urlparse(apiBaseUrlLocal)
+            localPiratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+            linkOK, linkError = checkLink(localPiratePlayDomain, exitOnError, verbose)
+            if linkOK:
+                apiBaseUrl = apiBaseUrlLocal
+            else:
+                onError(65, "Could not connect to %s" % apiBaseUrlLocal)
+                apiBaseUrl = apiBaseUrlPiratePlay
+        else:
+            parsed_uri = urlparse(apiBaseUrlPiratePlay)
+            piratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+            linkOK, linkError = checkLink(piratePlayDomain, exitOnError, verbose)
+            if linkOK:
+                apiBaseUrl = apiBaseUrlPiratePlay
+            else:
+                onError(65, "Could not connect to %s" % apiBaseUrlPiratePlay)
+                apiBaseUrl = apiBaseUrlLocal
+        if verbose:
+            printInfo1("Using %s as source for getting XML")
+    
         if verbose:
             printInfo2("Parsing the response from pirateplay.se API...")
         parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXML, url)
