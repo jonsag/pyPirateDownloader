@@ -87,7 +87,9 @@ def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, check
             
     exitOnError = False
     if prioritizeApiBaseUrlLocal:
-        linkOK, linkError = checkLink(apiBaseUrlLocal, exitOnError, verbose)
+        parsed_uri = urlparse(apiBaseUrlLocal)
+        localPiratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+        linkOK, linkError = checkLink(localPiratePlayDomain, exitOnError, verbose)
         if linkOK:
             apiBaseUrl = apiBaseUrlLocal
         else:

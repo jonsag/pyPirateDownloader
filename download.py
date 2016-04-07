@@ -54,7 +54,7 @@ def getDuration(stream, checkDuration, verbose):
             while True:
                 trys += 1
                 if trys > maxTrys:
-                    onError(38, "Giving up after % trys" % (trys - 1))
+                    onError(38, "Giving up after %s trys" % (trys - 1))
                     printWarning("Setting duration to %s" % duration)
                     gotAnswer = True
                     gotXML = True
