@@ -8,7 +8,7 @@ from BeautifulSoup import BeautifulSoup
 from subprocess import Popen, PIPE
 
 from misc import (printInfo1, printInfo2, printWarning, checkLink, onError, getWebPage, 
-                  printError, getffprobePath, avprobePath, maxTrys)
+                  printError, getffprobePath, avprobePath, ffprobePath, maxTrys)
 
 def svtPlayXML(firstPage, verbose):
     myXML = checkFirstSvtPage(firstPage, verbose)
@@ -244,6 +244,9 @@ def findQuality(url, verbose):
         sys.stdout.flush()
         
     if ffprobe == avprobePath:
+        if verbose:
+            printInfo1("Using %s to get video information" % avprobePath)
+        
         cmd = "%s -loglevel error -show_format -show_streams %s -of json" % (ffprobe, url)
         args = shlex.split(cmd)
         
@@ -310,7 +313,10 @@ def findQuality(url, verbose):
                 else:
                     sys.stdout.write(".")
                     sys.stdout.flush() 
-                
+    else:
+        if verbose:
+            printInfo1("Using %s to get video information" % ffprobePath)
+            
     if width and height:
         if verbose:
             printInfo1("Found both width and height")
@@ -318,7 +324,10 @@ def findQuality(url, verbose):
             sys.stdout.write(".")
             sys.stdout.flush()
     else:
-        printWarning("Could not find width and height")
+        if verbose:
+            printWarning("Could not find width and height")
+        else:
+            printWarning("\nCould not find width and height")
         
     return ("%s x %s" % (width, height), bitrate, codecLongName)   
     

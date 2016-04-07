@@ -90,18 +90,18 @@ def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, check
     exitOnError = False
     if not xmlRoot:
         if prioritizeApiBaseUrlLocal:
-            parsed_uri = urlparse(apiBaseUrlLocal)
-            localPiratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-            linkOK, linkError = checkLink(localPiratePlayDomain, exitOnError, verbose)
+            #parsed_uri = urlparse(apiBaseUrlLocal)
+            #localPiratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+            linkOK, linkError = checkLink("%s?url=http%3A%2F%2Fvimeo.com%2F2" % apiBaseUrlLocal, exitOnError, verbose)
             if linkOK:
                 apiBaseUrl = apiBaseUrlLocal
             else:
                 onError(65, "Could not connect to %s" % apiBaseUrlLocal)
                 apiBaseUrl = apiBaseUrlPiratePlay
         else:
-            parsed_uri = urlparse(apiBaseUrlPiratePlay)
-            piratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-            linkOK, linkError = checkLink(piratePlayDomain, exitOnError, verbose)
+            #parsed_uri = urlparse(apiBaseUrlPiratePlay)
+            #piratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+            linkOK, linkError = checkLink("%s?url=http%3A%2F%2Fvimeo.com%2F2" % apiBaseUrlPiratePlay, exitOnError, verbose)
             if linkOK:
                 apiBaseUrl = apiBaseUrlPiratePlay
             else:
