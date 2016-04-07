@@ -6,14 +6,16 @@ import urllib2, re, sys
 
 from time import sleep
 from BeautifulSoup import BeautifulSoup
+from urlparse import urlparse
 
 import xml.etree.ElementTree as ET
 
 from misc import (onError, printInfo1, printInfo2, printWarning,  
                   apiBaseUrl, getStreamsXML, printScores,
-                  maxTrys, waitTime, numbering, 
+                  maxTrys, waitTime, numbering, checkLink, 
                   minVidBitRate, maxVidBitRate, minVidWidth, maxVidWidth, 
-                  localPythonXMLGenerator) 
+                  localPythonXMLGenerator, prioritizeApiBaseUrlLocal, 
+                  apiBaseUrlLocal, apiBaseUrlPiratePlay) 
 
 from download import getDuration, getSubSize
 
@@ -82,6 +84,26 @@ def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, check
             xmlRoot = ET.fromstring(xmlCode)
         else:
             xmlRoot = ""
+            
+    exitOnError = False
+    if prioritizeApiBaseUrlLocal:
+        linkOK, linkError = checkLink(apiBaseUrlLocal, exitOnError, verbose)
+        if linkOK:
+            apiBaseUrl = apiBaseUrlLocal
+        else:
+            onError(65, "Could not connect to %s" % apiBaseUrlLocal)
+            apiBaseUrl = apiBaseUrlPiratePlay
+    else:
+        parsed_uri = urlparse(apiBaseUrlPiratePlay)
+        piratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+        linkOK, linkError = checkLink(piratePlayDomain, exitOnError, verbose)
+        if linkOK:
+            apiBaseUrl = apiBaseUrlPiratePlay
+        else:
+            onError(65, "Could not connect to %s" % apiBaseUrlPiratePlay)
+            apiBaseUrl = apiBaseUrlLocal
+    if verbose:
+        printInfo1("Using %s as source for getting XML")
     
     if not xmlRoot:
         if verbose:

@@ -35,7 +35,7 @@ def extractLinks(url, verbose):
             if not xmlCode:
                 onError(60, "Could not find any stream")
             else:
-                if verbose or not verbose:
+                if verbose:
                     printInfo1("XML code:")
                     print xmlCode
                     return xmlCode

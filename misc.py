@@ -20,6 +20,7 @@ apiBaseUrlLocal = config.get('pirateplay', 'apiBaseUrlLocal')
 apiBaseUrlPiratePlay = config.get('pirateplay', 'apiBaseUrlPiratePlay')
 defaultXmlSource = config.get('pirateplay', 'defaultXmlSource')
 localPythonXMLGenerator = config.getboolean('pirateplay', 'localPythonXMLGenerator')
+prioritizeApiBaseUrlLocal = config.getboolean('pirateplay', 'prioritizeApiBaseUrlLocal')
 getStreamsXML = config.get('pirateplay', 'getStreamsXML')  # get streams from pirateplay.se using XML
 getStreamsJson = config.get('pirateplay', 'getStreamsJson')  # get streams from pirateplay.se using json
 maxTrys = int(config.get('pirateplay', 'maxTrys'))
@@ -74,7 +75,7 @@ gid = grp.getgrnam(group).gr_gid
 # 30,31,32,33,34,35,36,37,38,39
 # 40,41,42,43,44,45,46,47,48,49
 # 50,51,52,53,54,55,56,57,58,59
-# 60,61,62,63, 64
+# 60,61,62,63,64,65
 
 def onError(errorCode, extra):
     printError("\nError %s:" % errorCode)
@@ -97,7 +98,7 @@ def onError(errorCode, extra):
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
                        40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 
                        53, 54,
-                       62, 63, 64):
+                       62, 63, 64, 65):
         printWarning("%s\n" % extra)
         return
     elif errorCode == 50:

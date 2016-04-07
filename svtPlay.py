@@ -29,6 +29,9 @@ def checkFirstSvtPage(firstPage, verbose):
     if verbose:
         printInfo1("Found first link:")
         print firstLink
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
         
     linkOK, linkError = checkLink(firstLink, haltOnError, verbose)
 
@@ -48,6 +51,9 @@ def checkSecondSvtPage(url, verbose):
     
     if verbose:
         printInfo2("Parsing page...")
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
 
     soup = BeautifulSoup(secondPage)
     items = soup.findAll("embed", attrs={'attr' : True})
@@ -57,8 +63,10 @@ def checkSecondSvtPage(url, verbose):
         if verbose:
             printInfo1("Found second tag:")
             print secondTag
-        if verbose:
             printInfo2("Decoding...")
+        else:
+            sys.stdout.write(".")
+            sys.stdout.flush()
         secondTag = urllib.unquote(secondTag).decode('utf8')
         secondTag = secondTag.split('=', 1)[-1]
     else:
@@ -66,6 +74,9 @@ def checkSecondSvtPage(url, verbose):
     
     if verbose:
         printInfo2("Converting to json...")
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
 
     jsonString = json.loads(secondTag)
     
@@ -73,27 +84,44 @@ def checkSecondSvtPage(url, verbose):
         printInfo1("JSON string:")
         print json.dumps(jsonString['video'], sort_keys=True, indent=2)
         printInfo2("Extracting video link...")
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
     
     videoLink = jsonString['video']['videoReferences'][0]['url']  
     
     if verbose:
         printInfo1("Found video link:")
         print videoLink
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
+        
     videos = checkVideoLink(videoLink, verbose)
     
     if verbose:
         printInfo2("Extracting subtitle link...")
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
+        
     subtitleLink = jsonString['video']['subtitleReferences'][0]['url']
     
     if verbose:
         printInfo1("Found subtitle link:")
         print subtitleLink
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
     checkSubtitleLink(subtitleLink, verbose)
     
     if verbose:
         printInfo1("Found videos:")
         for video in videos:
             print video
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
         
     myXML = composeXML(videos, subtitleLink, verbose)
     
@@ -115,21 +143,35 @@ def checkVideoLink(videoLink, verbose):
     
     if verbose:
         printInfo2("Checking video link...")
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
         
     if videoLink.endswith(correctLinkSuffix):
         LinkOK = True
         if verbose:
             printInfo1("Link ending OK")
             printInfo2("Stripping off suffix %s" % correctLinkSuffix)
+        else:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+            
         videoLink = videoLink.rstrip(correctLinkSuffix)
+        
         if verbose:
             printInfo1("New link:")
             print videoLink
+        else:
+            sys.stdout.write(".")
+            sys.stdout.flush()
     else:
         onError(61, "Link did not end with %s" % correctLinkSuffix)
         
     if verbose:
         printInfo2("Looking for valid video links...")
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
         
     while True:
         testLink = videoLink.replace(oldPattern, newPattern)
@@ -138,11 +180,18 @@ def checkVideoLink(videoLink, verbose):
         if verbose:
             printInfo2("Checking video link #%s..." % index)
             print "%s/index_%s_av.m3u8?null=0" % (testLink, index)
+        else:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+            
         linkOK , linkError = checkLink(testLink, haltOnError, verbose)
         
         if not linkOK:
             if verbose:
                 printWarning("Did not get an answer for link #%s" % index)
+            else:
+                sys.stdout.write(".")
+                sys.stdout.flush()
             break
         else:
             if checkQuality:
@@ -150,11 +199,17 @@ def checkVideoLink(videoLink, verbose):
                 if verbose:
                     printInfo1("Resolution:")
                     print resolution
+                else:
+                    sys.stdout.write(".")
+                    sys.stdout.flush()
             else:
                 printWarning("Not checking quality")
                 
             if verbose:
                 printInfo2("Adding video...")
+            else:
+                sys.stdout.write(".")
+                sys.stdout.flush()
                 
             videos.append({"videoLink" : testLink, 
                            "resolution" : resolution, 
@@ -169,6 +224,9 @@ def checkVideoLink(videoLink, verbose):
 def checkSubtitleLink(subtitleLink, verbose):
     if verbose:
         printInfo2("Checking subtitle link...")
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
         
 def findQuality(url, verbose):
     width = 0
@@ -181,6 +239,9 @@ def findQuality(url, verbose):
     
     if verbose:
         printInfo2("Looking up quality for stream with %s..." % ffprobe)
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
         
     if ffprobe == avprobePath:
         cmd = "%s -loglevel error -show_format -show_streams %s -of json" % (ffprobe, url)
@@ -204,6 +265,9 @@ def findQuality(url, verbose):
                 else:
                     if verbose:
                         printInfo1("Got an answer")
+                    else:
+                        sys.stdout.write(".")
+                        sys.stdout.flush()
                     output, error = process.communicate()
                     gotAnswer = True
                     break
@@ -215,26 +279,44 @@ def findQuality(url, verbose):
             jsonString = json.loads(output)
             if verbose:
                 print "Full json: %s" % json.dumps(jsonString, sort_keys=True, indent=2)
+            else:
+                sys.stdout.write(".")
+                sys.stdout.flush()
             if json.dumps(jsonString['streams'][0]['width']):
                 width = json.dumps(jsonString['streams'][0]['width'])
                 if verbose:
                     print "Width: %s" % width
+                else:
+                    sys.stdout.write(".")
+                    sys.stdout.flush()
             if json.dumps(jsonString['streams'][0]['height']):
                 height = json.dumps(jsonString['streams'][0]['height'])
                 if verbose:
                     print "Height: %s" % height
+                else:
+                    sys.stdout.write(".")
+                    sys.stdout.flush()
             if json.dumps(jsonString['format']['bit_rate']):
                 bitrate = json.dumps(jsonString['format']['bit_rate'])
                 if verbose:
                     print "Bitrate: %s" % bitrate
+                else:
+                    sys.stdout.write(".")
+                    sys.stdout.flush()
             if json.dumps(jsonString['streams'][0]['codec_long_name']):
                 codecLongName = json.dumps(jsonString['streams'][0]['codec_long_name'])
                 if verbose:
-                    print "Codec long name: %s" % codecLongName 
+                    print "Codec long name: %s" % codecLongName
+                else:
+                    sys.stdout.write(".")
+                    sys.stdout.flush() 
                 
     if width and height:
         if verbose:
             printInfo1("Found both width and height")
+        else:
+            sys.stdout.write(".")
+            sys.stdout.flush()
     else:
         printWarning("Could not find width and height")
         
@@ -243,6 +325,9 @@ def findQuality(url, verbose):
 def findReportedBitrates(url, verbose):
     if verbose:
         printInfo2("Finding reported bitrates...")
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
         
     result = url.split(',', 1)[-1]
     result = result.rstrip(',.mp4.csmil/manifest.f4m')
@@ -258,6 +343,9 @@ def composeXML(videos, subtitleLink, verbose):
     if verbose:
         printInfo2("Generating XML...")
         printInfo1("Adding %s streams" % len(videos))
+    else:
+        sys.stdout.write(".")
+        sys.stdout.flush()
     
     myXML.append("<streams>")
     
@@ -267,6 +355,9 @@ def composeXML(videos, subtitleLink, verbose):
             print "Bitrate: %s" % videos[s]['reportedBitrate']
             print "Video link: %s" % videos[s]['videoLink']
             print "Subtitle link: %s" % subtitleLink
+        else:
+            sys.stdout.write(".")
+            sys.stdout.flush()
         myXML.append(('<stream quality="%s kbps" subtitles="%s" suffix-hint="mp4" required-player-version="0">') % 
                      (videos[s]['reportedBitrate'], 
                       subtitleLink)
