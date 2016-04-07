@@ -7,7 +7,7 @@ import getopt, sys, os
 from misc import (usage, onError, 
                   defaultXmlSource)
 
-from parseInput import parseXML, dlListPart
+from parseInput import parseXML, dlListPart, retrieveXML
 
 from convert import convertVideo
 
@@ -33,6 +33,7 @@ verbose = False
 keepOld = False
 reDownload = False
 checkDuration = True
+xmlSource = defaultXmlSource
 
 ##### handle arguments #####
 try:
@@ -136,10 +137,9 @@ if reDownload and keepOld:
     
 if not xmlSource in ('pirateplay', 'local', 'python'):
     onError(63, "'%s' is not a valid option for -x, --xmlsource\nSetting it to %s" % (xmlSource, defaultXmlSource))
-    xmlSource = defaultXmlSource
         
 if url and not convertTo and not parseText:
-    downloads = parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+    downloads = retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
     finish(downloads, keepOld, reDownload, checkDuration, listOnly, convertTo, bashOutFile, verbose)
     
 elif dlList and not convertTo and not parseText:

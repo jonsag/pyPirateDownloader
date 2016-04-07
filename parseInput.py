@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import urllib2, re
+import urllib2, re, sys
 
 from time import sleep
 from BeautifulSoup import BeautifulSoup
@@ -12,9 +12,12 @@ import xml.etree.ElementTree as ET
 from misc import (onError, printInfo1, printInfo2, printWarning,  
                   apiBaseUrl, getStreamsXML, printScores,
                   maxTrys, waitTime, numbering, 
-                  minVidBitRate, maxVidBitRate, minVidWidth, maxVidWidth) 
+                  minVidBitRate, maxVidBitRate, minVidWidth, maxVidWidth, 
+                  localPythonXMLGenerator) 
 
 from download import getDuration, getSubSize
+
+from generateXML import extractLinks
 
 downloads = []
 
@@ -42,7 +45,7 @@ def dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQualit
             if name and not url:
                 onError(9, "First line was not a url")
             elif url and name:
-                downloads = parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+                downloads = retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
                 url = ""
                 name = ""
 
@@ -53,72 +56,88 @@ def dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQualit
         name = "null"
         for line in lines:
             if len(line) > 1 and line.startswith("http"):
-                downloads = parseXML(line, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
-
-                    
+                downloads = retrieveXML(line, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)                  
         
     return downloads
 
-def parseXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose):
-    vidBitRate = 0
-    vidWidth = 0
-    
-    currentQuality = 0
-    lastQuality = 0
-    downloads = []
+def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose):
     gotAnswer = False
     trys = 0
     gotXML = False
+    
+    if verbose:
+        printInfo2("Getting XML...")
     
     if name != name.replace("'", "").replace('"', '').replace(":", ""):
         name = name.replace("'", "").replace('"', '').replace(":", "")
         if verbose:
             printWarning("Removed quotes , double quotes and colons in out file name")
-
-    if verbose:
-        printInfo2("Parsing the response from pirateplay.se API...")
-    parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXML, url)
-    printInfo2("\nGetting streams for %s ..." % parseUrl)
-    printScores()
+            
+    if localPythonXMLGenerator:
+        if verbose:
+            printInfo2("Getting XML from local python xml generator...")
+        #sys.exit()
+        xmlCode = extractLinks(url, verbose)
+        if xmlCode:
+            xmlRoot = ET.fromstring(xmlCode)
+        else:
+            xmlRoot = ""
     
-    while True:
+    if not xmlRoot:
+        if verbose:
+            printInfo2("Parsing the response from pirateplay.se API...")
+        parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXML, url)
+        printInfo2("\nGetting streams for %s ..." % parseUrl)
+        printScores()
+        
         while True:
-            trys += 1
-            if trys > maxTrys:
-                onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
-            if verbose:
-                printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
+            while True:
+                trys += 1
+                if trys > maxTrys:
+                    onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+                if verbose:
+                    printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
+                try:
+                    piratePlayXML = urllib2.urlopen(parseUrl)
+                except urllib2.HTTPError, e:
+                    onError(35, "HTTPError\n    %s\n    Trying again...\n" % str(e.code))
+                    sleep(waitTime)
+                except urllib2.URLError, e:
+                    onError(36, "URLError\n    %s\n    Trying again...\n" % str(e.reason))
+                    sleep(waitTime)
+                except:
+                    onError(37, "Error\n    Trying again...\n")
+                    sleep(waitTime)
+                else:
+                    if verbose:
+                        printInfo1("Got answer")
+                    gotAnswer = True
+                    break
+                
+            piratePlayXMLString = piratePlayXML.read()
             try:
-                piratePlayXML = urllib2.urlopen(parseUrl)
-            except urllib2.HTTPError, e:
-                onError(35, "HTTPError\n    %s\n    Trying again...\n" % str(e.code))
-                sleep(waitTime)
-            except urllib2.URLError, e:
-                onError(36, "URLError\n    %s\n    Trying again...\n" % str(e.reason))
-                sleep(waitTime)
+                xmlRoot = ET.fromstring(piratePlayXMLString)
             except:
-                onError(37, "Error\n    Trying again...\n")
-                sleep(waitTime)
+                onError(42, "Did not receive a valid XML")
+                printInfo2("Trying again...")
             else:
                 if verbose:
-                    printInfo1("Got answer")
-                gotAnswer = True
+                    printInfo1("Downloaded a valid XML")
+                gotXML = True
+                
+            if gotAnswer and gotXML:
                 break
             
-        piratePlayXMLString = piratePlayXML.read()
-        try:
-            xmlRoot = ET.fromstring(piratePlayXMLString)
-        except:
-            onError(42, "Did not receive a valid XML")
-            printInfo2("Trying again...")
-        else:
-            if verbose:
-                printInfo1("Downloaded a valid XML")
-            gotXML = True
-            
-        if gotAnswer and gotXML:
-            break
-            
+    downloads = parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+    return downloads
+
+def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose):
+    vidBitRate = 0
+    vidWidth = 0
+    currentQuality = 0
+    lastQuality = 0
+    downloads = []
+                
     if name == "null":
         trys = 0
         printInfo2("Getting page title to use as file name...")
@@ -231,7 +250,7 @@ def addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInf
         subSize = 0
     if fileInfo:
         name = "%s.%s" % (name, quality)
-    downloads.append({'address': videoStream,
+    downloads.append({'address': videoStream.strip(),
                       'suffix': suffixHint,
                       'subs': subtitles,
                       'name': name,

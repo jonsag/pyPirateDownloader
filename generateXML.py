@@ -13,27 +13,7 @@ def usage(exitCode):
     printInfo1("\nUsage:")
     printScores()
     printInfo1("%s -u <url>" % sys.argv[0])
-    printInfo1("        Parse <url> for streamed video")
-    
-verbose = False        
-
-##### handle arguments #####
-try:
-    myopts, args = getopt.getopt(sys.argv[1:], 'u:v' ,
-                                 ['url=', 
-                                  'verbose'])
-
-except getopt.GetoptError as e:
-    onError(56, str(e))
-
-if len(sys.argv) == 1:  # no options passed
-    onError(57, "No options given")
-    
-for option, argument in myopts:
-    if option in ('-u', '--url'):
-        url = argument
-    elif option in ('-v', '--verbose'):
-        verbose = True
+    printInfo1("        Parse <url> for streamed video")     
 
 def extractLinks(url, verbose):
     haltOnError = True
@@ -58,10 +38,34 @@ def extractLinks(url, verbose):
                 if verbose or not verbose:
                     printInfo1("XML code:")
                     print xmlCode
+                    return xmlCode
+        else:
+            onError(64, "Not able to run local python XML generator on this address")
+            xmlCode = ""
     else:
         onError(59, "Could not download webpage")
     
-extractLinks(url, verbose)
+if __name__ == "__main__":
+    verbose = False
+    
+    ##### handle arguments #####
+    try:
+        myopts, args = getopt.getopt(sys.argv[1:], 'u:v' ,
+                                     ['url=', 
+                                      'verbose'])
+    
+    except getopt.GetoptError as e:
+        onError(56, str(e))
+    
+    if len(sys.argv) == 1:  # no options passed
+        onError(57, "No options given")
+        
+    for option, argument in myopts:
+        if option in ('-u', '--url'):
+            url = argument
+        elif option in ('-v', '--verbose'):
+            verbose = True
+    extractLinks(url, verbose)
     
 
 

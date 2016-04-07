@@ -19,6 +19,7 @@ config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__)))  # re
 apiBaseUrlLocal = config.get('pirateplay', 'apiBaseUrlLocal')
 apiBaseUrlPiratePlay = config.get('pirateplay', 'apiBaseUrlPiratePlay')
 defaultXmlSource = config.get('pirateplay', 'defaultXmlSource')
+localPythonXMLGenerator = config.getboolean('pirateplay', 'localPythonXMLGenerator')
 getStreamsXML = config.get('pirateplay', 'getStreamsXML')  # get streams from pirateplay.se using XML
 getStreamsJson = config.get('pirateplay', 'getStreamsJson')  # get streams from pirateplay.se using json
 maxTrys = int(config.get('pirateplay', 'maxTrys'))
@@ -59,7 +60,7 @@ dlCommentError = config.get('textRecognition', 'dlCommentError')
 dlCommentExist = config.get('textRecognition', 'dlCommentExist')
 dlCommentNoSub = config.get('textRecognition', 'dlCommentNoSub')
 
-apiBaseUrl = apiBaseUrlLocal                           
+apiBaseUrl = apiBaseUrlPiratePlay                         
 resolveHost = False
 
 uid = os.getuid()
@@ -73,7 +74,7 @@ gid = grp.getgrnam(group).gr_gid
 # 30,31,32,33,34,35,36,37,38,39
 # 40,41,42,43,44,45,46,47,48,49
 # 50,51,52,53,54,55,56,57,58,59
-# 60,61,62,63
+# 60,61,62,63, 64
 
 def onError(errorCode, extra):
     printError("\nError %s:" % errorCode)
@@ -96,7 +97,7 @@ def onError(errorCode, extra):
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
                        40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 
                        53, 54,
-                       62, 63):
+                       62, 63, 64):
         printWarning("%s\n" % extra)
         return
     elif errorCode == 50:
@@ -230,15 +231,15 @@ def continueWithProcess(fileName, suffix, keepOld, reDownload, firstMessage, sec
         elif keepOld:
             while True:
                 number += 1
-                printInfo2(("Renaming it to %s.%s.old%s"
+                printInfo2(("Renaming it to %s.%s.old%s..."
                        % (fileName, suffix, number)))
-                print
                 if os.path.isfile("%s.%s.old%s" % (fileName, suffix, number)):
                     printWarning("%s.%s.old%s already exists" % (fileName, suffix, number))
                 else:
                     os.rename("%s.%s" % (fileName, suffix),
                               "%s.%s.old%s" % (fileName, suffix, number))
                     doDownload = True
+                    printInfo2("Continuing...\n")
                     break
         else:
             printInfo1(secondMessage)

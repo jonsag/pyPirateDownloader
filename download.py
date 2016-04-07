@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import urllib2, os, shlex, datetime, stat
+import urllib2, os, shlex, datetime, stat, sys, json
 
 from subprocess import Popen, PIPE
 
 import xml.etree.ElementTree as ET
 
 from misc import (printInfo1, printInfo2, printScores, printWarning, printError, 
-                  ffmpegPath, avconvPath, avprobePath, maxTrys, uid, gid,
+                  ffmpegPath, avconvPath, avprobePath, ffprobePath, maxTrys, uid, gid,
                   bashSuffix, getffmpegPath, getffprobePath, resolveHost, domainToIPno, 
                   numbering, continueWithProcess, runProcess, downloadFile, 
                   onError, mask, group, dlCommentSuccess, dlCommentError, dlCommentExist, 
@@ -30,7 +30,7 @@ def getDuration(stream, checkDuration, verbose):
     
     ffprobe = getffprobePath(verbose)
     
-    if not ffprobe or ffprobe == avprobePath:
+    if not ffprobe:
         if verbose:
             printWarning("Disabling checking of duration")
         checkDuration = False
@@ -40,66 +40,111 @@ def getDuration(stream, checkDuration, verbose):
             printScores()
             printInfo2("Probing for duration of stream...")  
               
-        cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobe, stream)
-        
-        if verbose:
-            printInfo1("Command: %s\n" % cmd)
+        if ffprobe == ffprobePath:
+            if verbose:
+                printInfo2("Using ffprope to determin duration...")
+                
+            cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobe, stream)
             
-        args = shlex.split(cmd)
+            if verbose:
+                printInfo1("Command: %s\n" % cmd)
+                
+            args = shlex.split(cmd)
+        
+            while True:
+                trys += 1
+                if trys > maxTrys:
+                    onError(38, "Giving up after % trys" % (trys - 1))
+                    printWarning("Setting duration to %s" % duration)
+                    gotAnswer = True
+                    gotXML = True
+                    break
+                
+                while True:
+                    try:
+                        process = Popen(args, stdout=PIPE, stderr=PIPE)
+                    except OSError as e:
+                        onError(39, "%s\nYou are probably missing ffmpeg" % e)
+                        noFFmpeg = True
+                        break
+                    else:
+                        if verbose:
+                            printInfo1("Got an answer")
+                        output, error = process.communicate()
+                        gotAnswer = True
+                        break
     
-        while True:
-            trys += 1
-            if trys > maxTrys:
-                onError(38, "Giving up after % trys" % (trys - 1))
-                printWarning("Setting duration to %s" % duration)
-                gotAnswer = True
-                gotXML = True
-                break
+                if not noFFmpeg:
+                    try:
+                        xmlRoot = ET.fromstring(output)
+                    except:
+                        onError(43, "Did not receive a valid XML")
+                        printInfo2("Trying again...")
+                    else:
+                        if verbose:
+                            printInfo1("Downloaded a valid XML")
+                            print output
+                        for xmlChild in xmlRoot:
+                            if 'duration' in xmlChild.attrib:
+                                duration = xmlChild.attrib['duration']
+                                if verbose:
+                                    printInfo1("Found duration in XML: %s" % duration)
+                                gotXML = True
+                               
+                        if not duration and verbose:
+                            printWarning("Could not find duration in XML")
+                else:
+                    onError(40, "Can not detect duration")
+                    printWarning("Setting duration to %s" % duration)
+                    gotAnswer = True
+                    gotXML = True
+                            
+                if gotAnswer and gotXML:
+                    break
+            
+            if verbose:
+                printScores()
+        else:
+            printInfo2("Using avprobe to determine duration...")
+            
+            cmd = "%s -loglevel error -show_format -show_streams %s -of json" % (ffprobe, stream)
+            
+            if verbose:
+                printInfo1("Command: %s\n" % cmd)
+            
+            args = shlex.split(cmd)
             
             while True:
-                try:
-                    process = Popen(args, stdout=PIPE, stderr=PIPE)
-                except OSError as e:
-                    onError(39, "%s\nYou are probably missing ffmpeg" % e)
-                    noFFmpeg = True
-                    break
-                else:
-                    if verbose:
-                        printInfo1("Got an answer")
-                    output, error = process.communicate()
+                trys += 1
+                if trys > maxTrys:
+                    onError(38, "Giving up after % trys" % (trys - 1))
                     gotAnswer = True
+                    gotXML = True
                     break
-
-            if not noFFmpeg:
-                try:
-                    xmlRoot = ET.fromstring(output)
-                except:
-                    onError(43, "Did not receive a valid XML")
-                    printInfo2("Trying again...")
-                else:
+                
+                while True:
+                    try:
+                        process = Popen(args, stdout=PIPE, stderr=PIPE)
+                    except OSError as e:
+                        onError(39, "%s\nYou are probably missing ffmpeg" % e)
+                        noFFmpeg = True
+                        break
+                    else:
+                        if verbose:
+                            printInfo1("Got an answer")
+                        output, error = process.communicate()
+                        gotAnswer = True
+                        break
+                
+                if gotAnswer:
+                    break
+                    
+            if gotAnswer:
+                jsonString = json.loads(output)
+                if json.dumps(jsonString['format']['duration']):
+                    duration = (json.dumps(jsonString['format']['duration']).strip('"'))
                     if verbose:
-                        printInfo1("Downloaded a valid XML")
-                        print output
-                    for xmlChild in xmlRoot:
-                        if 'duration' in xmlChild.attrib:
-                            duration = xmlChild.attrib['duration']
-                            if verbose:
-                                printInfo1("Found duration in XML: %s" % duration)
-                            gotXML = True
-                           
-                    if not duration and verbose:
-                        printWarning("Could not find duration in XML")
-            else:
-                onError(40, "Can not detect duration")
-                printWarning("Setting duration to %s" % duration)
-                gotAnswer = True
-                gotXML = True
-                        
-            if gotAnswer and gotXML:
-                break
-        
-        if verbose:
-            printScores()
+                        print "Duration: %s" % duration
             
     else:
         printWarning("Duration check disabled")
@@ -191,14 +236,24 @@ def ffmpegDownloadCommand(line, verbose):
                       line['name'].rstrip(), line['suffix'])
                    )
     elif ffmpeg == avconvPath:
-        cmd = (
-               "%s -i %s"
-               " -acodec copy -vcodec copy"  # -absf aac_adtstoasc"
-               " '%s.%s'"
-               % (ffmpeg,
-                  url,
-                  line['name'].rstrip(), line['suffix'])
-               )
+        if verbose:
+            cmd = (
+                   "%s -i %s"
+                   " -loglevel verbose -acodec copy -vcodec copy"  # -absf aac_adtstoasc"
+                   " '%s.%s'"
+                   % (ffmpeg,
+                      url,
+                      line['name'].rstrip(), line['suffix'])
+                   )
+        else:
+            cmd = (
+                   "%s -i %s"
+                   " -acodec copy -vcodec copy"  # -absf aac_adtstoasc"
+                   " '%s.%s'"
+                   % (ffmpeg,
+                      url,
+                      line['name'].rstrip(), line['suffix'])
+                   )            
     else:
         onError(16, "You do not have either ffmpeg or avconv on the paths set in your config")
     
@@ -262,6 +317,10 @@ def wgetDownloadCommand(line, verbose):
 
 def getDownloadCommands(line, verbose):
     subCmd = ""
+    
+    if verbose:
+        printInfo2("Composing download commands for line...")
+        print line
     
     if line['address'].startswith("http"):
         if verbose:
