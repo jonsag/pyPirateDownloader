@@ -439,10 +439,6 @@ def findQuality(url, verbose):
             printWarning("Could not find codec long name")
         else:
             printWarning("\nCould not codec long name")
-            
-    ############################
-    sys.exit()
-    ############################
         
     return ("%s x %s" % (width, height), bitrate, codecLongName)   
     
