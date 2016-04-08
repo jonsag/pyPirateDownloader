@@ -306,7 +306,9 @@ def findQuality(url, verbose):
                         printInfo1("Downloaded a valid XML")
                         print output
                     for xmlChild in xmlRoot:
-                        print xmlChild.attrib
+                        ###########################
+                        print xmlChild.tag, xmlChild.attrib
+                        ###########################
                         if 'bit_rate' in xmlChild.attrib:
                             bitrate = xmlChild.attrib['bit_rate']
                             if verbose:
@@ -349,7 +351,9 @@ def findQuality(url, verbose):
                         
             if gotAnswer and gotXML:
                 break
+        ############################
         sys.exit()
+        ############################
     else:
         if verbose:
             printInfo1("Using %s to get video information" % avprobePath)
