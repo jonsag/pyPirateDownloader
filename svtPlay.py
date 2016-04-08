@@ -326,7 +326,7 @@ def findQuality(url, verbose):
                             
                                     
                             if 'codec_long_name' in innerChild.attrib:
-                                codecLongName = innerChild.attrib['codecLongName']
+                                codecLongName = innerChild.attrib['codec_long_name']
                                 if verbose:
                                     printInfo1("Found codec long name in XML: %s" % codecLongName)
                             else:
