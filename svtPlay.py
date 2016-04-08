@@ -421,6 +421,7 @@ def findQuality(url, verbose):
     if width and height:
         if verbose:
             printInfo1("Found both width and height")
+            print "%s x %s" % (width, height)
         else:
             sys.stdout.write(".")
             sys.stdout.flush()
@@ -433,6 +434,7 @@ def findQuality(url, verbose):
     if bitrate:
         if verbose:
             printInfo1("Found bitrate")
+            print bitrate
         else:
             sys.stdout.write(".")
             sys.stdout.flush()
@@ -441,6 +443,19 @@ def findQuality(url, verbose):
             printWarning("Could not find bitrate")
         else:
             printWarning("\nCould not find bitrate")
+    
+    if codecLongName:
+        if verbose:
+            printInfo1("Found codec long name")
+            print codecLongName
+        else:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+    else:
+        if verbose:
+            printWarning("Could not find codec long name")
+        else:
+            printWarning("\nCould not codec long name")
             
     ############################
     sys.exit()
