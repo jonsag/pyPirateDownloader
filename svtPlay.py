@@ -303,39 +303,22 @@ def findQuality(url, verbose):
                     printInfo2("Trying again...")
                 else:
                     if verbose:
-                        printInfo1("Downloaded a valid XML")
+                        printInfo1("Downloaded a valid XML:")
                         print output
                     for xmlChild in xmlRoot:
-                        ###########################
-                        print "hejhopp"
-                        print xmlChild.tag, xmlChild.attrib
-                        ###########################
                         if 'bit_rate' in xmlChild.attrib:
                             bitrate = xmlChild.attrib['bit_rate']
-                            if verbose:
-                                printInfo1("Found bitrate in XML: %s" % bitrate)
-                                
-                        for innerChild in xmlChild:
-                            ###########################
-                            print "inre hejhopp"
-                            print innerChild.tag, innerChild.attrib
-                            ###########################
-                                   
+     
+                        for innerChild in xmlChild:                                   
                             if 'codec_long_name' in innerChild.attrib and not codecLongName:
                                 codecLongName = innerChild.attrib['codec_long_name']
-                                if verbose:
-                                    printInfo1("Found codec long name in XML: %s" % codecLongName)
-              
+
                             if 'width' in innerChild.attrib and not width:
                                 width = innerChild.attrib['width']
-                                if verbose:
-                                    printInfo1("Found width in XML: %s" % width)
-                                    
+      
                             if 'height' in innerChild.attrib and not height:
                                 height = innerChild.attrib['height']
-                                if verbose:
-                                    printInfo1("Found height in XML: %s" % height)
-                                    
+            
                     gotXML = True
                            
             else:
