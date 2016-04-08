@@ -307,6 +307,7 @@ def findQuality(url, verbose):
                         print output
                     for xmlChild in xmlRoot:
                         ###########################
+                        print "hejhopp"
                         print xmlChild.tag, xmlChild.attrib
                         ###########################
                         if 'bit_rate' in xmlChild.attrib:
