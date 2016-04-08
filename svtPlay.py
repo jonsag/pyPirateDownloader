@@ -306,8 +306,8 @@ def findQuality(url, verbose):
                         printInfo1("Downloaded a valid XML")
                         print output
                     for xmlChild in xmlRoot:
-                        if 'duration' in xmlChild.attrib:
-                            bitrate = xmlChild.attrib['bitrate']
+                        if 'bit_rate' in xmlChild.attrib:
+                            bitrate = xmlChild.attrib['bit_rate']
                             if verbose:
                                 printInfo1("Found bitrate in XML: %s" % bitrate)
                             gotXML = True
