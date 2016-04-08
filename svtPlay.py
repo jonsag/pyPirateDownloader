@@ -314,12 +314,12 @@ def findQuality(url, verbose):
                             codecLongName = xmlChild.attrib['codecLongName']
                             if verbose:
                                 printInfo1("Found codec long name in XML: %s" % codecLongName)
-                        if 'width' in xmlChild.attrib:
-                            width = xmlChild.attrib['width']
+                        if 'codec_width' in xmlChild.attrib:
+                            width = xmlChild.attrib['codec_width']
                             if verbose:
                                 printInfo1("Found width in XML: %s" % width)
-                        if 'height' in xmlChild.attrib:
-                            height = xmlChild.attrib['height']
+                        if 'codec_height' in xmlChild.attrib:
+                            height = xmlChild.attrib['codec_height']
                             if verbose:
                                 printInfo1("Found height in XML: %s" % height)
                     gotXML = True
