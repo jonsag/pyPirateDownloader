@@ -318,30 +318,37 @@ def findQuality(url, verbose):
                             if verbose:
                                 printWarning("Could not find bitrate in XML")
                                 
-                        if 'codec_long_name' in xmlChild.attrib:
-                            codecLongName = xmlChild.attrib['codecLongName']
-                            if verbose:
-                                printInfo1("Found codec long name in XML: %s" % codecLongName)
-                        else:
-                            if verbose:
-                                printWarning("Could not find codec long name in XML")
-                                
-                        if 'width' in xmlChild.attrib:
-                            width = xmlChild.attrib['width']
-                            if verbose:
-                                printInfo1("Found width in XML: %s" % width)
-                        else:
-                            if verbose:
-                                printWarning("Could not find width in XML")
-                                
-                        if 'height' in xmlChild.attrib:
-                            height = xmlChild.attrib['height']
-                            if verbose:
-                                printInfo1("Found height in XML: %s" % height)
-                        else:
-                            if verbose:
-                                printWarning("Could not find height in XML")
-                                
+                        for innerChild in xmlChild:
+                            ###########################
+                            print "inre hejhopp"
+                            print innerChild.tag, innerChild.attrib
+                            ###########################
+                            
+                                    
+                            if 'codec_long_name' in innerChild.attrib:
+                                codecLongName = innerChild.attrib['codecLongName']
+                                if verbose:
+                                    printInfo1("Found codec long name in XML: %s" % codecLongName)
+                            else:
+                                if verbose:
+                                    printWarning("Could not find codec long name in XML")
+                                    
+                            if 'width' in innerChild.attrib:
+                                width = innerChild.attrib['width']
+                                if verbose:
+                                    printInfo1("Found width in XML: %s" % width)
+                            else:
+                                if verbose:
+                                    printWarning("Could not find width in XML")
+                                    
+                            if 'height' in innerChild.attrib:
+                                height = innerChild.attrib['height']
+                                if verbose:
+                                    printInfo1("Found height in XML: %s" % height)
+                            else:
+                                if verbose:
+                                    printWarning("Could not find height in XML")
+                                    
                     gotXML = True
                            
             else:
