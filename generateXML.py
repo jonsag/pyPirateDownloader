@@ -44,6 +44,10 @@ def extractLinks(url, verbose):
             xmlCode = ""
     else:
         onError(59, "Could not download webpage")
+        
+    if not verbose:
+        print "\n"
+    return xmlCode
     
 if __name__ == "__main__":
     verbose = False

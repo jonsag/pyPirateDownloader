@@ -351,10 +351,6 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
             if trys > maxTrys:
                 onError(29, "Tried to download video %s times\nSkipping..." % (trys - 1))
                 videoComment = dlCommentError
-                #if os.path.isfile("%s.%s" % (line['name'].rstrip(), line['suffix'])):
-                #    printWarning("Deleting the partially downloaded file...")
-                #    os.remove("%s.%s ..." % (line['name'].rstrip(), line['suffix']))
-                    
                 break
             
             print
@@ -364,6 +360,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 
             if continueWithProcess(line['name'].rstrip(), line['suffix'], keepOld, reDownload,
                                    "Will redownload\n", "Keeping old file. No download\n", verbose):
+                if verbose:
+                    printInfo2("Executing download command...")
+                    print videoCmd
                 exitCode = runProcess(videoCmd, verbose)
                 if exitCode != 0:
                     printScores()
@@ -405,19 +404,22 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 trys += 1
                 if trys > maxTrys:
                     onError(32, "Tried to download subtitles %s times\nSkipping..." % (trys - 1))
-                    #if os.path.isfile("%s.srt" % line['name'].rstrip()):
-                    #    printWarning("Deleting the partially downloaded file...")
-                    #    os.remove("%s.srt ..." % line['name'].rstrip())
                     subComment = dlCommentError
                     break
                 
                 print
                 printInfo2("Downloading subtitles %s.srt ..." % line['name'].rstrip())
+                if verbose:
+                    printInfo1("from %s" % line['subs'])
                 printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
                 printScores()
                 
                 if continueWithProcess(line['name'].rstrip(), "srt", keepOld, reDownload,
                                        "Will redownload\n", "Keeping old file. No download\n", verbose):
+                    if verbose:
+                        printInfo2("Downloading file...")
+                        print line['subs']
+                        print videoCmd
                     result = downloadFile(line['subs'], "%s.%s" % (line['name'].rstrip(), "srt"), verbose)
                     if not result:
                         printScores()

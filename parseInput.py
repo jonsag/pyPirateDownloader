@@ -63,9 +63,8 @@ def dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQualit
     return downloads
 
 def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose):
-    gotAnswer = False
     trys = 0
-    gotXML = False
+    xmlCode = ""
     xmlRoot = ""
     
     if verbose:
@@ -79,19 +78,11 @@ def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, check
     if localPythonXMLGenerator:
         if verbose:
             printInfo2("Getting XML from local python xml generator...")
-        #sys.exit()
         xmlCode = extractLinks(url, verbose)
-        if xmlCode:
-            if verbose:
-                printInfo1("Got XML")
-                printInfo2("Decoding XML...")
-            xmlRoot = ET.fromstring(xmlCode)
             
     exitOnError = False
-    if not xmlRoot:
+    if not xmlCode:
         if prioritizeApiBaseUrlLocal:
-            #parsed_uri = urlparse(apiBaseUrlLocal)
-            #localPiratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
             linkOK, linkError = checkLink("%s?url=http://www.vimeo.com" % apiBaseUrlLocal, exitOnError, verbose)
             if linkOK:
                 apiBaseUrl = apiBaseUrlLocal
@@ -99,8 +90,6 @@ def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, check
                 onError(65, "Could not connect to %s" % apiBaseUrlLocal)
                 apiBaseUrl = apiBaseUrlPiratePlay
         else:
-            #parsed_uri = urlparse(apiBaseUrlPiratePlay)
-            #piratePlayDomain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
             linkOK, linkError = checkLink("%s?url=http://www.vimeo.com" % apiBaseUrlPiratePlay, exitOnError, verbose)
             if linkOK:
                 apiBaseUrl = apiBaseUrlPiratePlay
@@ -108,7 +97,7 @@ def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, check
                 onError(65, "Could not connect to %s" % apiBaseUrlPiratePlay)
                 apiBaseUrl = apiBaseUrlLocal
         if verbose:
-            printInfo1("Using %s as source for getting XML")
+            printInfo1("Using %s as source for getting XML" % apiBaseUrl)
     
         if verbose:
             printInfo2("Parsing the response from pirateplay.se API...")
@@ -117,43 +106,38 @@ def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, check
         printScores()
         
         while True:
-            while True:
-                trys += 1
-                if trys > maxTrys:
-                    onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
-                if verbose:
-                    printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
-                try:
-                    piratePlayXML = urllib2.urlopen(parseUrl)
-                except urllib2.HTTPError, e:
-                    onError(35, "HTTPError\n    %s\n    Trying again...\n" % str(e.code))
-                    sleep(waitTime)
-                except urllib2.URLError, e:
-                    onError(36, "URLError\n    %s\n    Trying again...\n" % str(e.reason))
-                    sleep(waitTime)
-                except:
-                    onError(37, "Error\n    Trying again...\n")
-                    sleep(waitTime)
-                else:
-                    if verbose:
-                        printInfo1("Got answer")
-                    gotAnswer = True
-                    break
-                
-            piratePlayXMLString = piratePlayXML.read()
+            trys += 1
+            if trys > maxTrys:
+                onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+            if verbose:
+                printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
             try:
-                xmlRoot = ET.fromstring(piratePlayXMLString)
+                piratePlayXML = urllib2.urlopen(parseUrl)
+            except urllib2.HTTPError, e:
+                onError(35, "HTTPError\n    %s\n    Trying again...\n" % str(e.code))
+                sleep(waitTime)
+            except urllib2.URLError, e:
+                onError(36, "URLError\n    %s\n    Trying again...\n" % str(e.reason))
+                sleep(waitTime)
             except:
-                onError(42, "Did not receive a valid XML")
-                printInfo2("Trying again...")
+                onError(37, "Error\n    Trying again...\n")
+                sleep(waitTime)
             else:
                 if verbose:
-                    printInfo1("Downloaded a valid XML")
-                gotXML = True
-                
-            if gotAnswer and gotXML:
+                    printInfo1("Got answer")
                 break
+                
+        xmlCode = piratePlayXML.read()
             
+    try:
+        xmlRoot = ET.fromstring(xmlCode)
+    except:
+        onError(42, "Did not receive a valid XML")
+        printInfo2("Trying again...")
+    else:
+        if verbose:
+            printInfo1("Downloaded a valid XML")
+        
     downloads = parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
     return downloads
 
@@ -197,7 +181,8 @@ def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality,
 
         if 'quality' in xmlChild.attrib:
             quality = xmlChild.attrib['quality']
-            printInfo1("\nQuality: %s" % quality)
+            if verbose:
+                printInfo1("\nQuality: %s" % quality)
         else:
             quality = "null"
             currentQuality = 1
@@ -209,8 +194,7 @@ def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality,
                 printInfo1("Suffix hint: %s" % suffixHint)
         else:
             suffixHint = "mp4"
-            if verbose:
-                printWarning("No suffix hint stated. Assuming %s" % suffixHint)
+            printWarning("No suffix hint stated. Assuming %s" % suffixHint)
 
         if 'required-player-version' in xmlChild.attrib:
             requiredPlayerVersion = xmlChild.attrib['required-player-version']
@@ -218,16 +202,14 @@ def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality,
                 printInfo1("Required player version: %s" % requiredPlayerVersion)
         else:
             requiredPlayerVersion = ""
-            if verbose:
-                printWarning("No required player version stated")
+            printWarning("No required player version stated")
 
         if 'subtitles' in xmlChild.attrib:
             subtitles = xmlChild.attrib['subtitles']
             if verbose:
                 printInfo1("Subtitles: %s" % subtitles)
         else:
-            if verbose:
-                printWarning("No subtitles")
+            printWarning("No subtitles")
             subtitles = ""
 
         if xmlChild.text:
@@ -236,8 +218,7 @@ def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality,
                 printInfo1("Video: %s" % videoStream)
         else:
             videoStream = ""
-            if verbose:
-                printWarning("No video stated")
+            printWarning("No video stated")
 
         if "bps" in quality:  # quality is probably bitrate: xxx kbps
             vidBitRate = int(re.sub("\D", "", quality))
@@ -245,8 +226,8 @@ def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality,
         elif "x" in quality:  # quality is probably resolution: width x height
             vidRes = quality.split("x")
             vidWidth = int(vidRes[0])
-            currentQuality = vidWidth
-            
+            currentQuality = vidWidth 
+        
         if bestQuality:
             if currentQuality > lastQuality:
                 downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
@@ -269,6 +250,10 @@ def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality,
 
 def addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose):
     streamDuration = getDuration(videoStream, checkDuration, verbose)
+    
+    if verbose:
+        printInfo2("Adding download...")
+    
     if subtitles:
         subSize = getSubSize(subtitles, checkDuration, verbose)
     else:

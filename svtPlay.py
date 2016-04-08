@@ -11,8 +11,8 @@ from misc import (printInfo1, printInfo2, printWarning, checkLink, onError, getW
                   printError, getffprobePath, avprobePath, ffprobePath, maxTrys)
 
 def svtPlayXML(firstPage, verbose):
-    myXML = checkFirstSvtPage(firstPage, verbose)
-    return myXML
+    xmlCode = checkFirstSvtPage(firstPage, verbose)
+    return xmlCode
 
 def checkFirstSvtPage(firstPage, verbose):
     haltOnError = True
@@ -41,8 +41,8 @@ def checkFirstSvtPage(firstPage, verbose):
         if verbose:
             printInfo1("Link OK")
             
-    myXML = checkSecondSvtPage(firstLink, verbose)
-    return myXML
+    xmlCode = checkSecondSvtPage(firstLink, verbose)
+    return xmlCode
     
 def checkSecondSvtPage(url, verbose):
     secondTag = ""
@@ -67,7 +67,10 @@ def checkSecondSvtPage(url, verbose):
         else:
             sys.stdout.write(".")
             sys.stdout.flush()
-        secondTag = urllib.unquote(secondTag).decode('utf8')
+        secondTag = urllib.unquote(secondTag.encode('utf8')).decode('utf8')
+        if verbose:
+            printInfo1("Decoded tag:")
+            print secondTag
         secondTag = secondTag.split('=', 1)[-1]
     else:
         printError("Did not find second tag") 
@@ -106,13 +109,14 @@ def checkSecondSvtPage(url, verbose):
         sys.stdout.flush()
         
     subtitleLink = jsonString['video']['subtitleReferences'][0]['url']
-    
+
     if verbose:
         printInfo1("Found subtitle link:")
         print subtitleLink
     else:
         sys.stdout.write(".")
         sys.stdout.flush()
+        
     checkSubtitleLink(subtitleLink, verbose)
     
     if verbose:
@@ -123,9 +127,9 @@ def checkSecondSvtPage(url, verbose):
         sys.stdout.write(".")
         sys.stdout.flush()
         
-    myXML = composeXML(videos, subtitleLink, verbose)
+    xmlCode = composeXML(videos, subtitleLink, verbose)
     
-    return myXML
+    return xmlCode
     
 def checkVideoLink(videoLink, verbose):
     index = 0
@@ -346,7 +350,7 @@ def findReportedBitrates(url, verbose):
     return result
 
 def composeXML(videos, subtitleLink, verbose):
-    myXML = []
+    xmlCode = []
     index = 0
     
     if verbose:
@@ -356,7 +360,7 @@ def composeXML(videos, subtitleLink, verbose):
         sys.stdout.write(".")
         sys.stdout.flush()
     
-    myXML.append("<streams>")
+    xmlCode.append("<streams>")
     
     for s in range(0, len(videos)):
         if verbose:
@@ -367,17 +371,17 @@ def composeXML(videos, subtitleLink, verbose):
         else:
             sys.stdout.write(".")
             sys.stdout.flush()
-        myXML.append(('<stream quality="%s kbps" subtitles="%s" suffix-hint="mp4" required-player-version="0">') % 
+        xmlCode.append(('<stream quality="%s kbps" subtitles="%s" suffix-hint="mp4" required-player-version="0">') % 
                      (videos[s]['reportedBitrate'], 
                       subtitleLink)
                      )
-        myXML.append(videos[s]['videoLink'])
-        myXML.append('</stream>')
+        xmlCode.append(videos[s]['videoLink'])
+        xmlCode.append('</stream>')
         
         
-    myXML.append('</streams>')
+    xmlCode.append('</streams>')
     
-    return myXML
+    return xmlCode
 
     
     
