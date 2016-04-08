@@ -7,6 +7,8 @@ import urllib, json, shlex, sys
 from BeautifulSoup import BeautifulSoup
 from subprocess import Popen, PIPE
 
+import xml.etree.ElementTree as ET
+
 from misc import (printInfo1, printInfo2, printWarning, checkLink, onError, getWebPage, 
                   printError, getffprobePath, avprobePath, ffprobePath, maxTrys)
 
@@ -200,9 +202,19 @@ def checkVideoLink(videoLink, verbose):
         else:
             if checkQuality:
                 resolution, bitrate, codecLongName = findQuality(testLink, verbose)
+                if "mpeg-4" in codecLongName.lower() or "h.264" in codecLongName.lower():
+                    suffixHint = "mp4"
+                else:
+                    suffixHint = "unknown_suffix"
                 if verbose:
                     printInfo1("Resolution:")
                     print resolution
+                    printInfo1("Bit rate: ")
+                    print bitrate
+                    printInfo1("Codec long name: ")
+                    print codecLongName
+                    printInfo1("Suffix hint: ")
+                    print suffixHint
                 else:
                     sys.stdout.write(".")
                     sys.stdout.flush()
@@ -219,7 +231,8 @@ def checkVideoLink(videoLink, verbose):
                            "resolution" : resolution, 
                            "bitrate" : bitrate,
                            "reportedBitrate" : reportedBitrates[index],  
-                           "codecLongName" : codecLongName})
+                           "codecLongName" : codecLongName,
+                           "suffixHint": suffixHint})
             
             index += 1
         
@@ -238,6 +251,7 @@ def findQuality(url, verbose):
     bitrate = 0
     codecLongName = ""
     trys = 0
+    noFFmpeg = False
     
     ffprobe = getffprobePath(verbose)
     
@@ -247,7 +261,69 @@ def findQuality(url, verbose):
         sys.stdout.write(".")
         sys.stdout.flush()
         
-    if ffprobe == avprobePath:
+    if ffprobe == ffprobePath:
+        if verbose:
+            printInfo1("Using %s to get video information" % ffprobePath)
+        
+        cmd = "%s -loglevel error -show_format -show_streams %s -print_format xml" % (ffprobe, url)
+            
+        if verbose:
+            printInfo1("Command: %s\n" % cmd)
+            
+        args = shlex.split(cmd)
+    
+        while True:
+            trys += 1
+            if trys > maxTrys:
+                onError(38, "Giving up after %s trys" % (trys - 1))
+                printWarning("Setting bitrate to %s" % bitrate)
+                gotAnswer = True
+                gotXML = True
+                break
+            
+            while True:
+                try:
+                    process = Popen(args, stdout=PIPE, stderr=PIPE)
+                except OSError as e:
+                    onError(39, "%s\nYou are probably missing ffmpeg" % e)
+                    noFFmpeg = True
+                    break
+                else:
+                    if verbose:
+                        printInfo1("Got an answer")
+                    output, error = process.communicate()
+                    gotAnswer = True
+                    break
+
+            if not noFFmpeg:
+                try:
+                    xmlRoot = ET.fromstring(output)
+                except:
+                    onError(43, "Did not receive a valid XML")
+                    printInfo2("Trying again...")
+                else:
+                    if verbose:
+                        printInfo1("Downloaded a valid XML")
+                        print output
+                    for xmlChild in xmlRoot:
+                        if 'duration' in xmlChild.attrib:
+                            bitrate = xmlChild.attrib['bitrate']
+                            if verbose:
+                                printInfo1("Found bitrate in XML: %s" % bitrate)
+                            gotXML = True
+                           
+                    if not bitrate and verbose:
+                        printWarning("Could not find bitrate in XML")
+            else:
+                onError(40, "Can not detect duration")
+                printWarning("Setting bitrate to %s" % bitrate)
+                gotAnswer = True
+                gotXML = True
+                        
+            if gotAnswer and gotXML:
+                break
+        
+    else:
         if verbose:
             printInfo1("Using %s to get video information" % avprobePath)
         
@@ -317,9 +393,6 @@ def findQuality(url, verbose):
                 else:
                     sys.stdout.write(".")
                     sys.stdout.flush() 
-    else:
-        if verbose:
-            printInfo1("Using %s to get video information" % ffprobePath)
             
     if width and height:
         if verbose:
@@ -332,6 +405,18 @@ def findQuality(url, verbose):
             printWarning("Could not find width and height")
         else:
             printWarning("\nCould not find width and height")
+            
+    if bitrate:
+        if verbose:
+            printInfo1("Found bitrate")
+        else:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+    else:
+        if verbose:
+            printWarning("Could not find bitrate")
+        else:
+            printWarning("\nCould not find bitrate")
         
     return ("%s x %s" % (width, height), bitrate, codecLongName)   
     
@@ -368,12 +453,14 @@ def composeXML(videos, subtitleLink, verbose):
             print "Bitrate: %s" % videos[s]['reportedBitrate']
             print "Video link: %s" % videos[s]['videoLink']
             print "Subtitle link: %s" % subtitleLink
+            print "Suffix hint: %s" % videos[s]['suffixHint']
         else:
             sys.stdout.write(".")
             sys.stdout.flush()
-        xmlCode.append(('<stream quality="%s kbps" subtitles="%s" suffix-hint="mp4" required-player-version="0">') % 
+        xmlCode.append(('<stream quality="%s kbps" subtitles="%s" suffix-hint="%s" required-player-version="0">') % 
                      (videos[s]['reportedBitrate'], 
-                      subtitleLink)
+                      subtitleLink, 
+                      videos[s]['suffixHint'])
                      )
         xmlCode.append(videos[s]['videoLink'])
         xmlCode.append('</stream>')
