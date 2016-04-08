@@ -310,7 +310,19 @@ def findQuality(url, verbose):
                             bitrate = xmlChild.attrib['bit_rate']
                             if verbose:
                                 printInfo1("Found bitrate in XML: %s" % bitrate)
-                            gotXML = True
+                        if 'codec_long_name' in xmlChild.attrib:
+                            codecLongName = xmlChild.attrib['codecLongName']
+                            if verbose:
+                                printInfo1("Found codec long name in XML: %s" % codecLongName)
+                        if 'width' in xmlChild.attrib:
+                            width = xmlChild.attrib['width']
+                            if verbose:
+                                printInfo1("Found width in XML: %s" % width)
+                        if 'height' in xmlChild.attrib:
+                            height = xmlChild.attrib['height']
+                            if verbose:
+                                printInfo1("Found height in XML: %s" % height)
+                    gotXML = True
                            
                     if not bitrate and verbose:
                         printWarning("Could not find bitrate in XML")
