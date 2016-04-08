@@ -320,13 +320,12 @@ def findQuality(url, verbose):
                             print "inre hejhopp"
                             print innerChild.tag, innerChild.attrib
                             ###########################
-                            
-                                    
+                                   
                             if 'codec_long_name' in innerChild.attrib and not codecLongName:
                                 codecLongName = innerChild.attrib['codec_long_name']
                                 if verbose:
-                                    printInfo1("Found codec long name in XML: %s" % codecLongName
-                                    
+                                    printInfo1("Found codec long name in XML: %s" % codecLongName)
+              
                             if 'width' in innerChild.attrib and not width:
                                 width = innerChild.attrib['width']
                                 if verbose:
@@ -347,9 +346,7 @@ def findQuality(url, verbose):
                         
             if gotAnswer and gotXML:
                 break
-        ############################
-        sys.exit()
-        ############################
+
     else:
         if verbose:
             printInfo1("Using %s to get video information" % avprobePath)
@@ -444,6 +441,10 @@ def findQuality(url, verbose):
             printWarning("Could not find bitrate")
         else:
             printWarning("\nCould not find bitrate")
+            
+    ############################
+    sys.exit()
+    ############################
         
     return ("%s x %s" % (width, height), bitrate, codecLongName)   
     
