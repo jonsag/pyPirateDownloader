@@ -37,7 +37,7 @@ xmlSource = defaultXmlSource
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:L:o:b:q:c:f:x:hapiRskrnvh' ,
+    myopts, args = getopt.getopt(sys.argv[1:], 'u:l:L:o:b:q:c:f:x:HapiRskrnvh' ,
                                  ['url=', 
                                   'list=', 
                                   'urllist=', 
@@ -89,7 +89,7 @@ for option, argument in myopts:
         videoInFile = argument
     elif option in ('-x', '--xmlsource'):
         xmlSource = argument.lower()
-    elif option in ('-h', '--highest'):
+    elif option in ('-H', '--highest'):
         bestQuality = True
     elif option in ('-a', '--all'):
         downloadAll = True

@@ -124,7 +124,8 @@ def checkSecondSvtPage(url, verbose):
         if verbose:
             printWarning("No subtitles found")
         else:
-            printWarning("\nNo subtitles found")
+            sys.stdout.write(".")
+            sys.stdout.flush()
         subtitleLink = ""
     
     if verbose:
