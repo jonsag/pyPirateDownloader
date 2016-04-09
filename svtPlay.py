@@ -92,6 +92,7 @@ def checkSecondSvtPage(url, verbose):
     else:
         sys.stdout.write(".")
         sys.stdout.flush()
+        
     
     videoLink = jsonString['video']['videoReferences'][0]['url']  
     
@@ -110,16 +111,21 @@ def checkSecondSvtPage(url, verbose):
         sys.stdout.write(".")
         sys.stdout.flush()
         
-    subtitleLink = jsonString['video']['subtitleReferences'][0]['url']
-
-    if verbose:
-        printInfo1("Found subtitle link:")
-        print subtitleLink
+    if "url" in jsonString['video']['subtitleReferences'][0]:
+        subtitleLink = jsonString['video']['subtitleReferences'][0]['url']
+        checkSubtitleLink(subtitleLink, verbose)
+        if verbose:
+            printInfo1("Found subtitle link:")
+            print subtitleLink
+        else:
+            sys.stdout.write(".")
+            sys.stdout.flush()
     else:
-        sys.stdout.write(".")
-        sys.stdout.flush()
-        
-    checkSubtitleLink(subtitleLink, verbose)
+        if verbose:
+            printWarning("No subtitles found")
+        else:
+            printWarning("\nNo subtitles found")
+        subtitleLink = ""
     
     if verbose:
         printInfo1("Found videos:")
@@ -458,7 +464,6 @@ def findReportedBitrates(url, verbose):
 
 def composeXML(videos, subtitleLink, verbose):
     xmlCode = []
-    index = 0
     
     if verbose:
         printInfo2("Generating XML...")
@@ -469,22 +474,29 @@ def composeXML(videos, subtitleLink, verbose):
     
     xmlCode.append("<streams>")
     
-    for s in range(0, len(videos)):
+    for index in range(0, len(videos)):
         if verbose:
-            printInfo2("Adding video stream #%s..." % s)
-            print "Bitrate: %s" % videos[s]['reportedBitrate']
-            print "Video link: %s" % videos[s]['videoLink']
-            print "Subtitle link: %s" % subtitleLink
-            print "Suffix hint: %s" % videos[s]['suffixHint']
+            printInfo2("Adding video stream #%s..." % index)
+            print "Bitrate: %s" % videos[index]['reportedBitrate']
+            print "Video link: %s" % videos[index]['videoLink']
+            if subtitleLink:
+                print "Subtitle link: %s" % subtitleLink
+            print "Suffix hint: %s" % videos[index]['suffixHint']
         else:
             sys.stdout.write(".")
             sys.stdout.flush()
-        xmlCode.append(('<stream quality="%s kbps" subtitles="%s" suffix-hint="%s" required-player-version="0">') % 
-                     (videos[s]['reportedBitrate'], 
-                      subtitleLink, 
-                      videos[s]['suffixHint'])
-                     )
-        xmlCode.append(videos[s]['videoLink'])
+        if subtitleLink:
+            xmlCode.append(('<stream quality="%s kbps" subtitles="%s" suffix-hint="%s" required-player-version="0">') % 
+                         (videos[index]['reportedBitrate'], 
+                          subtitleLink, 
+                          videos[index]['suffixHint'])
+                         )
+        else:
+            xmlCode.append(('<stream quality="%s kbps" suffix-hint="%s" required-player-version="0">') % 
+                         (videos[index]['reportedBitrate'], 
+                          videos[index]['suffixHint'])
+                         )
+        xmlCode.append(videos[index]['videoLink'])
         xmlCode.append('</stream>')
         
         

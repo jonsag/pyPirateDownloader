@@ -181,8 +181,7 @@ def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality,
 
         if 'quality' in xmlChild.attrib:
             quality = xmlChild.attrib['quality']
-            if verbose:
-                printInfo1("\nQuality: %s" % quality)
+            printInfo1("\nQuality: %s" % quality)
         else:
             quality = "null"
             currentQuality = 1
@@ -206,44 +205,63 @@ def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality,
 
         if 'subtitles' in xmlChild.attrib:
             subtitles = xmlChild.attrib['subtitles']
-            if verbose:
-                printInfo1("Subtitles: %s" % subtitles)
+            printInfo1("Subtitles: %s" % subtitles)
         else:
             printWarning("No subtitles")
             subtitles = ""
 
         if xmlChild.text:
             videoStream = xmlChild.text
-            if verbose:
-                printInfo1("Video: %s" % videoStream)
+            printInfo1("Video: %s" % videoStream)
         else:
             videoStream = ""
             printWarning("No video stated")
 
         if "bps" in quality:  # quality is probably bitrate: xxx kbps
+            if verbose:
+                printInfo1("Quality is stated as kbps")
             vidBitRate = int(re.sub("\D", "", quality))
             currentQuality = vidBitRate
         elif "x" in quality:  # quality is probably resolution: width x height
+            if verbose:
+                printInfo1("Qualitu is stated as width x height")
             vidRes = quality.split("x")
             vidWidth = int(vidRes[0])
             currentQuality = vidWidth 
         
         if bestQuality:
             if currentQuality > lastQuality:
+                if verbose:
+                    printInfo1("This video has the best quality yet")
                 downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
                 lastQuality = currentQuality
         else:
             if downloadAll:
+                if verbose:
+                    printInfo1("Adding this as we will download alla streams")
                 downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
             elif quality == "null":
+                if verbose:
+                    printInfo1("Adding this stream as this is likely to be the only one")
                 downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
             else:                                
                 if not setQuality and vidBitRate > minVidBitRate and vidBitRate < maxVidBitRate:
+                    if verbose:
+                        printInfo2("Adding this stream as it matches our selection")
+                        print "Minimum bitrate: %s kbps" % minVidBitRate
+                        print "This streams bitrate: %s kbps" % vidBitRate
+                        print "Maximum bitrate: %s kbps" % maxVidBitRate
                     downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
                 elif not setQuality and vidWidth > minVidWidth and vidWidth < maxVidWidth:
+                    if verbose:
+                        printInfo2("Adding this stream as it matches our selection")
+                        print "Minimum width: %s kbps" % minVidWidth
+                        print "This streams width: %s kbps" % vidWidth
+                        print "Maximum width: %s kbps" % maxVidWidth
                     downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)
                 elif setQuality:
                     if setQuality == vidBitRate or setQuality == vidWidth:
+                        printInfo2("Adding this stream as it matches set quality")
                         downloads = addDownload(videoStream, checkDuration, subtitles, suffixHint, name, fileInfo, quality, verbose)     
                     
     return downloads
