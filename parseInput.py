@@ -92,17 +92,23 @@ def generateDownloads(url, name, fileInfo, downloadAll, setQuality, bestQuality,
                 
         ##### try local pirateplay's API #####
         elif xmlSource == "localPiratePlay":
+            if verbose:
+                printInfo2("Getting XML from local pirateplay's API...")
             xmlCode = retrievePiratePlayXML(apiBaseUrlLocal, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
             if xmlCode:
                 break
         ##### try pirateplay's API #####
-        elif xmlSource == "localPiratePlay":
+        elif xmlSource == "piratePlay":
+            if verbose:
+                printInfo2("Getting XML from local pirateplay.se's API...")
             xmlCode = retrievePiratePlayXML(apiBaseUrlPiratePlay, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
             if xmlCode:
                 break
             
         ##### try svtplay-dl #####
-        elif not xmlCode:
+        elif xmlSource == "svtPlayDl":
+            if verbose:
+                printInfo2("Getting XML from svtplay-dl...")
             xmlCode = svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
             if xmlCode:
                 break
