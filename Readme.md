@@ -30,6 +30,8 @@ Prerequisites
 		xml
 		
 	Most of these modules are installed as a part of python already.
+	
+	Run preInstallTest.py to verify requisites.
 
 Installation
 

@@ -26,6 +26,8 @@ getStreamsJson = config.get('pirateplay', 'getStreamsJson')  # get streams from 
 maxTrys = int(config.get('pirateplay', 'maxTrys'))
 waitTime = int(config.get('pirateplay', 'waitTime'))
 
+xmlPriorityOrder = [item.strip(' ') for item in config.get('pirateplay', 'xmlPriorityOrder').split(",")]
+
 minVidBitRate = int(config.get('quality', 'minVidBitRate'))
 maxVidBitRate = int(config.get('quality', 'maxVidBitRate'))
 
@@ -46,7 +48,7 @@ ffmpegPath = config.get('ffmpeg', 'ffmpegPath')
 avprobePath = config.get('ffmpeg', 'avprobePath')
 avconvPath = config.get('ffmpeg', 'avconvPath')
 
-videoExtensions = (config.get('video', 'videoExtensions')).split(',')  # load video extensions
+videoExtensions = [item.strip(' ') for item in (config.get('video', 'videoExtensions')).split(',')]  # load video extensions
 
 videoCodec = config.get('video', 'videoCodec')
 
@@ -75,7 +77,7 @@ gid = grp.getgrnam(group).gr_gid
 # 30,31,32,33,34,35,36,37,38,39
 # 40,41,42,43,44,45,46,47,48,49
 # 50,51,52,53,54,55,56,57,58,59
-# 60,61,62,63,64,65
+# 60,61,62,63,64,65,66,67,68,69
 
 def onError(errorCode, extra):
     printError("\nError %s:" % errorCode)
@@ -85,20 +87,21 @@ def onError(errorCode, extra):
         printError(extra)
         usage(errorCode)
     elif errorCode in (4, 7 ,8 ,9, 
-                       10, 11, 13, 14, 15, 16, 
+                       11, 13, 14, 15, 16, 
                        22, 
                        51, 52, 55, 58, 59,
-                       60, 61):
+                       60, 61, 69):
         printError(extra)
         sys.exit(errorCode)
     elif errorCode in (17, 18, 19):
         printError(extra)
         sys.exit(0)
-    elif errorCode in (20, 21, 23, 24, 25, 26, 27, 28, 29, 
+    elif errorCode in (10, 
+                       20, 21, 23, 24, 25, 26, 27, 28, 29, 
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
                        40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 
                        53, 54,
-                       62, 63, 64, 65):
+                       62, 63, 64, 65, 66, 67, 68):
         printWarning("%s\n" % extra)
         return
     elif errorCode == 50:
@@ -217,6 +220,21 @@ def runProcess(cmd, verbose):
         printInfo2("Exit code: %s" % exitCode)
  
     return exitCode
+
+def runProcessReturnOutput(cmd, verbose):
+    if verbose:
+        printInfo1("Command: %s\n" % cmd)
+                        
+    args = shlex.split(cmd)
+    
+    process = Popen(args, stdout=PIPE)    
+    output = process.communicate() 
+    exitCode = process.wait()
+
+    if verbose:
+        printInfo2("Exit code: %s" % exitCode)
+ 
+    return output
 
 def continueWithProcess(fileName, suffix, keepOld, reDownload, firstMessage, secondMessage, verbose):
     number = 0

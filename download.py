@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import urllib2, os, shlex, datetime, stat, sys, json
+import urllib2, os, shlex, datetime, stat, json
 
 from subprocess import Popen, PIPE
 
 import xml.etree.ElementTree as ET
 
 from misc import (printInfo1, printInfo2, printScores, printWarning, printError, 
-                  ffmpegPath, avconvPath, avprobePath, ffprobePath, maxTrys, uid, gid,
+                  ffmpegPath, avconvPath, ffprobePath, maxTrys, uid, gid,
                   bashSuffix, getffmpegPath, getffprobePath, resolveHost, domainToIPno, 
                   numbering, continueWithProcess, runProcess, downloadFile, 
                   onError, mask, group, dlCommentSuccess, dlCommentError, dlCommentExist, 

@@ -6,20 +6,21 @@ import urllib2, re, sys
 
 from time import sleep
 from BeautifulSoup import BeautifulSoup
-from urlparse import urlparse
 
 import xml.etree.ElementTree as ET
 
 from misc import (onError, printInfo1, printInfo2, printWarning,  
-                  apiBaseUrl, getStreamsXML, printScores,
+                  apiBaseUrl, 
                   maxTrys, waitTime, numbering, checkLink, 
                   minVidBitRate, maxVidBitRate, minVidWidth, maxVidWidth, 
                   localPythonXMLGenerator, prioritizeApiBaseUrlLocal, 
-                  apiBaseUrlLocal, apiBaseUrlPiratePlay) 
+                  apiBaseUrlLocal, apiBaseUrlPiratePlay, xmlPriorityOrder) 
 
 from download import getDuration, getSubSize
 
-from generateXML import extractLinks
+from generateXML import internalXMLGenerator, retrievePiratePlayXML, svtplaydlXML
+
+import generateXML
 
 downloads = []
 
@@ -47,7 +48,7 @@ def dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQualit
             if name and not url:
                 onError(9, "First line was not a url")
             elif url and name:
-                downloads = retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+                downloads = generateXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
                 url = ""
                 name = ""
 
@@ -58,87 +59,74 @@ def dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQualit
         name = "null"
         for line in lines:
             if len(line) > 1 and line.startswith("http"):
-                downloads = retrieveXML(line, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)                  
+                downloads = retrievePiratePlayXML(line, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)                  
         
     return downloads
 
-def retrieveXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose):
-    trys = 0
+def generateDownloads(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose):
     xmlCode = ""
     xmlRoot = ""
-    
-    if verbose:
-        printInfo2("Getting XML...")
     
     if name != name.replace("'", "").replace('"', '').replace(":", ""):
         name = name.replace("'", "").replace('"', '').replace(":", "")
         if verbose:
             printWarning("Removed quotes , double quotes and colons in out file name")
-            
-    if localPythonXMLGenerator:
-        if verbose:
-            printInfo2("Getting XML from local python xml generator...")
-        xmlCode = extractLinks(url, verbose)
-            
-    exitOnError = False
-    if not xmlCode:
-        if prioritizeApiBaseUrlLocal:
-            linkOK, linkError = checkLink("%s?url=http://www.vimeo.com" % apiBaseUrlLocal, exitOnError, verbose)
-            if linkOK:
-                apiBaseUrl = apiBaseUrlLocal
-            else:
-                onError(65, "Could not connect to %s" % apiBaseUrlLocal)
-                apiBaseUrl = apiBaseUrlPiratePlay
-        else:
-            linkOK, linkError = checkLink("%s?url=http://www.vimeo.com" % apiBaseUrlPiratePlay, exitOnError, verbose)
-            if linkOK:
-                apiBaseUrl = apiBaseUrlPiratePlay
-            else:
-                onError(65, "Could not connect to %s" % apiBaseUrlPiratePlay)
-                apiBaseUrl = apiBaseUrlLocal
-        if verbose:
-            printInfo1("Using %s as source for getting XML" % apiBaseUrl)
     
-        if verbose:
-            printInfo2("Parsing the response from pirateplay.se API...")
-        parseUrl = "%s/%s%s" % (apiBaseUrl, getStreamsXML, url)
-        printInfo2("\nGetting streams for %s ..." % parseUrl)
-        printScores()
-        
-        while True:
-            trys += 1
-            if trys > maxTrys:
-                onError(10, "Tried connecting %s times. Giving up..." % (trys - 1))
+    if verbose:
+        printInfo2("Getting XML...")
+        s = 0
+        printInfo2("Trying these sources one by one:")
+        for xmlSource in xmlPriorityOrder:
+            s += 1
+            print "%s: %s" % (s, xmlSource)
+            
+    for xmlSource in xmlPriorityOrder:
+    
+        ##### try internal XML generator #####
+        if xmlSource == "internal":
             if verbose:
-                printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
-            try:
-                piratePlayXML = urllib2.urlopen(parseUrl)
-            except urllib2.HTTPError, e:
-                onError(35, "HTTPError\n    %s\n    Trying again...\n" % str(e.code))
-                sleep(waitTime)
-            except urllib2.URLError, e:
-                onError(36, "URLError\n    %s\n    Trying again...\n" % str(e.reason))
-                sleep(waitTime)
-            except:
-                onError(37, "Error\n    Trying again...\n")
-                sleep(waitTime)
-            else:
-                if verbose:
-                    printInfo1("Got answer")
+                printInfo2("Getting XML from local python xml generator...")
+            xmlCode = internalXMLGenerator(url, verbose)
+            if xmlCode:
                 break
                 
-        xmlCode = piratePlayXML.read()
+        ##### try local pirateplay's API #####
+        elif xmlSource == "localPiratePlay":
+            xmlCode = retrievePiratePlayXML(apiBaseUrlLocal, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+            if xmlCode:
+                break
+        ##### try pirateplay's API #####
+        elif xmlSource == "localPiratePlay":
+            xmlCode = retrievePiratePlayXML(apiBaseUrlPiratePlay, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+            if xmlCode:
+                break
             
+        ##### try svtplay-dl #####
+        elif not xmlCode:
+            xmlCode = svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+            if xmlCode:
+                break
+    ##### giving up if no XML #####
+    if not xmlCode:
+        onError(69, "Could not find any way to get XML\nGiving up\nExiting!")
+                
+    if verbose:
+        printInfo1("XML code:")
+        print xmlCode
+        
     try:
         xmlRoot = ET.fromstring(xmlCode)
     except:
         onError(42, "Did not receive a valid XML")
-        printInfo2("Trying again...")
+        #printInfo2("Trying again...")
     else:
         if verbose:
             printInfo1("Downloaded a valid XML")
         
     downloads = parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+    if len(downloads) == 0:
+        onError(67, "Did not find any suitable streams \nTsync-boorying another method...")
+        sys.exit()
     return downloads
 
 def parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose):

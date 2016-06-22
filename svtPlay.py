@@ -26,7 +26,11 @@ def checkFirstSvtPage(firstPage, verbose):
 
     items = soup.findAll(attrs={'data-json-href' : True})
 
-    firstLink = items[0]['data-json-href']
+    try:
+        firstLink = items[0]['data-json-href']
+    except:
+        xmlCode = "Error"
+        return xmlCode
     
     if verbose:
         printInfo1("Found first link:")
