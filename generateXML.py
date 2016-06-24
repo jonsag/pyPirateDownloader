@@ -125,11 +125,24 @@ def svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, chec
                 videoLink = output[1]
                 videoLink = "%s%s" % (videoLink.split("m3u8", 1)[0], "m3u8")
                 if verbose:
-                    printInfo1(videoLink)
+                    printInfo1("Video link:")
+                    print videoLink
                 videos = addVideo(videos, videoLink, vidBitRate, verbose)
                 lookupLink = False
     
-    subtitleLink = ""
+    if verbose:
+        printInfo2("Checking for subtitles...")     
+    cmd = "svtplay-dl %s -S --force-subtitle -g" % url
+    output = runProcessReturnOutput(cmd, verbose)
+    subtitleLink = output[0]
+    if verbose:
+        if subtitleLink:
+            printInfo1("Subtitle link:")
+            print subtitleLink
+        else:
+            printInfo1("No subitles found")
+    
+
     xmlCode = composeXML(videos, subtitleLink, verbose)
     xmlCode = '\n'.join(xmlCode)
     
@@ -172,7 +185,7 @@ def composeXML(videos, subtitleLink, verbose):
             sys.stdout.flush()
         if subtitleLink:
             xmlCode.append(('<stream quality="%s kbps" subtitles="%s" suffix-hint="%s" required-player-version="0">') % 
-                         (videos[index]['reportedBitrate'], 
+                         (videos[index]['bitrate'], 
                           subtitleLink, 
                           videos[index]['suffixHint'])
                          )

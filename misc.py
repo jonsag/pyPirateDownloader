@@ -86,7 +86,7 @@ def onError(errorCode, extra):
                      56, 57):
         printError(extra)
         usage(errorCode)
-    elif errorCode in (4, 7 ,8 ,9, 
+    elif errorCode in (4, 7 ,8 ,9, 10, 
                        11, 13, 14, 15, 16, 
                        22, 
                        51, 52, 55, 58, 59,
@@ -96,8 +96,7 @@ def onError(errorCode, extra):
     elif errorCode in (17, 18, 19):
         printError(extra)
         sys.exit(0)
-    elif errorCode in (10, 
-                       20, 21, 23, 24, 25, 26, 27, 28, 29, 
+    elif errorCode in (20, 21, 23, 24, 25, 26, 27, 28, 29, 
                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
                        40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 
                        53, 54,
@@ -232,6 +231,8 @@ def runProcessReturnOutput(cmd, verbose):
     exitCode = process.wait()
 
     if verbose:
+        printInfo1("Output from command:")
+        print output
         printInfo2("Exit code: %s" % exitCode)
  
     return output
