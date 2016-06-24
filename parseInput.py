@@ -20,8 +20,6 @@ from download import getDuration, getSubSize
 
 from generateXML import internalXMLGenerator, retrievePiratePlayXML, svtplaydlXML
 
-import generateXML
-
 downloads = []
 
 def dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQuality, downloadAll, verbose):
@@ -48,7 +46,7 @@ def dlListPart(dlList, urlsOnly, setQuality, checkDuration, fileInfo, bestQualit
             if name and not url:
                 onError(9, "First line was not a url")
             elif url and name:
-                downloads = generateXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
+                downloads = generateDownloads(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
                 url = ""
                 name = ""
 
