@@ -354,7 +354,9 @@ def getVideos(downloads, keepOld, reDownload, checkDuration, verbose):
                 break
             
             print
-            printInfo2("Downloading video %s.%s ..." % (line['name'].rstrip(), line['suffix']))
+            printInfo2("Downloading stream to %s.%s ..." % (line['name'].rstrip(), line['suffix']))
+            expectedDuration = round(float(line['duration']), 2)
+            printInfo1("Expected duration: %s" % str(datetime.timedelta(seconds=expectedDuration)))
             printInfo1("%s%s try" % (trys, numbering(trys, verbose)))
             printScores()
                 
