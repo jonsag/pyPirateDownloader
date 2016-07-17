@@ -90,26 +90,25 @@ def generateDownloads(url, name, fileInfo, downloadAll, setQuality, bestQuality,
                 
         ##### try local pirateplay's API #####
         elif xmlSource == "localPiratePlay":
-            if verbose:
-                printInfo2("Getting XML from local pirateplay's API...")
+            printInfo2("Getting XML from local pirateplay's API...")
             xmlCode = retrievePiratePlayXML(apiBaseUrlLocal, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
             if xmlCode:
                 break
+                
         ##### try pirateplay's API #####
         elif xmlSource == "piratePlay":
-            if verbose:
-                printInfo2("Getting XML from local pirateplay.se's API...")
+            printInfo2("Getting XML from local pirateplay.se's API...")
             xmlCode = retrievePiratePlayXML(apiBaseUrlPiratePlay, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
             if xmlCode:
                 break
             
         ##### try svtplay-dl #####
         elif xmlSource == "svtPlayDl":
-            if verbose:
-                printInfo2("Getting XML from svtplay-dl...")
+            printInfo2("Getting XML from svtplay-dl...")
             xmlCode = svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
             if xmlCode:
                 break
+                
     ##### giving up if no XML #####
     if not xmlCode:
         onError(69, "Could not find any way to get XML\nGiving up\nExiting!")
@@ -129,7 +128,7 @@ def generateDownloads(url, name, fileInfo, downloadAll, setQuality, bestQuality,
         
     downloads = parseXML(xmlRoot, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
     if len(downloads) == 0:
-        onError(67, "Did not find any suitable streams \nTsync-boorying another method...")
+        onError(67, "Did not find any suitable streams")# \nTrying another method...")
         sys.exit()
     return downloads
 
