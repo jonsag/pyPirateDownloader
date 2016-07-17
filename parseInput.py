@@ -97,7 +97,7 @@ def generateDownloads(url, name, fileInfo, downloadAll, setQuality, bestQuality,
                 
         ##### try pirateplay's API #####
         elif xmlSource == "piratePlay":
-            printInfo2("Getting XML from local pirateplay.se's API...")
+            printInfo2("Getting XML from pirateplay.se's API...")
             xmlCode = retrievePiratePlayXML(apiBaseUrlPiratePlay, url, name, fileInfo, downloadAll, setQuality, bestQuality, checkDuration, verbose)
             if xmlCode:
                 break
