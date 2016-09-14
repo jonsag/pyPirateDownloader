@@ -63,6 +63,8 @@ dlCommentError = config.get('textRecognition', 'dlCommentError')
 dlCommentExist = config.get('textRecognition', 'dlCommentExist')
 dlCommentNoSub = config.get('textRecognition', 'dlCommentNoSub')
 
+svtplaydlVersion = int(config.get('svtplay-dl', 'svtplaydlVersion'))
+
 apiBaseUrl = apiBaseUrlPiratePlay                         
 resolveHost = False
 

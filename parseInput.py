@@ -83,7 +83,7 @@ def generateDownloads(url, name, fileInfo, downloadAll, setQuality, bestQuality,
         ##### try internal XML generator #####
         if xmlSource == "internal":
             if verbose:
-                printInfo2("Getting XML from local python xml generator...")
+                printInfo2("Getting XML from this programs python xml generator...")
             xmlCode = internalXMLGenerator(url, verbose)
             if xmlCode:
                 break

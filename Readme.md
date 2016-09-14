@@ -3,7 +3,9 @@ A tool using pirateplay.se's API to download video from streaming services
 Prerequisites
 
 	ffmpeg or libav
+	mediainfo
 	rtmpdump
+	svtplay-dl
 	
 	python modules:
 		BeautifulSoup

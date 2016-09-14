@@ -9,7 +9,8 @@ from misc import (printScores, printInfo1, runProcessReturnOutput,
                   prioritizeApiBaseUrlLocal, apiBaseUrlLocal, apiBaseUrlPiratePlay, 
                   getStreamsXML, 
                   maxTrys, numbering, waitTime, 
-                  minVidBitRate, maxVidBitRate)
+                  minVidBitRate, maxVidBitRate, 
+                  svtplaydlVersion)
 
 from svtPlay import svtPlayXML
 
@@ -123,7 +124,10 @@ def svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, chec
                 output = output[0]
                 output = output.split("\n")
                 videoLink = output[1]
-                videoLink = "%s%s" % (videoLink.split("m3u8", 1)[0], "m3u8")
+                if svtplaydlVersion == 0:
+                    videoLink = "%s%s" % (videoLink.split("m3u8", 1)[0], "m3u8")
+                elif svtplaydlVersion == 1:
+                    videoLink = "%s%s" % (videoLink.split("m3u8", 0)[0], "m3u8")
                 if verbose:
                     printInfo1("Video link:")
                     print videoLink
