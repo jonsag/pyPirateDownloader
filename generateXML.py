@@ -123,16 +123,17 @@ def svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, chec
                 output = runProcessReturnOutput(cmd, verbose)
                 output = output[0]
                 output = output.split("\n")
-                videoLink = output[1]
                 if svtplaydlVersion == 0:
-                    videoLink = "%s%s" % (videoLink.split("m3u8", 1)[0], "m3u8")
+                    videoLink = output[1]
                 elif svtplaydlVersion == 1:
-                    videoLink = "%s%s" % (videoLink.split("m3u8", 0)[0], "m3u8")
-                if verbose:
-                    printInfo1("Video link:")
-                    print videoLink
-                videos = addVideo(videos, videoLink, vidBitRate, verbose)
-                lookupLink = False
+                    videoLink = output[0]
+                if videoLink.startswith('http://svtplay'):
+                    videoLink = "%s%s" % (videoLink.split("m3u8", 1)[0], "m3u8")
+                    if verbose:
+                        printInfo1("Video link:")
+                        print videoLink
+                    videos = addVideo(videos, videoLink, vidBitRate, verbose)
+                    lookupLink = False
     
     if verbose:
         printInfo2("Checking for subtitles...")     
