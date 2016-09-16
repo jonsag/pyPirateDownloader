@@ -15,6 +15,8 @@ from misc import (printScores, printInfo1, runProcessReturnOutput,
 from svtPlay import svtPlayXML
 
 from time import sleep
+
+from urlparse import urlparse
         
 def usage(exitCode):
     printInfo1("\nUsage:")
@@ -127,13 +129,17 @@ def svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, chec
                     videoLink = output[1]
                 elif svtplaydlVersion == 1:
                     videoLink = output[0]
-                if videoLink.startswith('http://svtplay'):
+                myLink = urlparse(videoLink)
+                myLoc = myLink.netloc
+                if verbose:
+                    printInfo1("Net location: %s" % myLoc)
+                if myLoc.startswith('svtplay') or myLoc.startswith('svtarchive'):
                     videoLink = "%s%s" % (videoLink.split("m3u8", 1)[0], "m3u8")
                     if verbose:
                         printInfo1("Video link:")
                         print videoLink
                     videos = addVideo(videos, videoLink, vidBitRate, verbose)
-                    lookupLink = False
+                lookupLink = False
     
     if verbose:
         printInfo2("Checking for subtitles...")     
