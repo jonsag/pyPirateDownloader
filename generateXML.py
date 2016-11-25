@@ -133,7 +133,7 @@ def svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, chec
                 myLoc = myLink.netloc
                 if verbose:
                     printInfo1("Net location: %s" % myLoc)
-                if myLoc.startswith('svtplay') or myLoc.startswith('svtarchive') or myLoc.startswith("tv4play") or myLoc.startswith('nordond'):
+                if myLoc.startswith('svtplay') or myLoc.startswith('svtarchive') or myLoc.startswith("tv4play") or myLoc.startswith('nordond') or myLoc.startswith('mtgxse'):
 
                     videoLink = "%s%s" % (videoLink.split("m3u8", 1)[0], "m3u8")
                     if verbose:
