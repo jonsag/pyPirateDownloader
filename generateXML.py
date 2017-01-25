@@ -125,6 +125,10 @@ def svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, chec
                 output = runProcessReturnOutput(cmd, verbose)
                 output = output[0]
                 output = output.split("\n")
+                if verbose:
+                    printInfo1("Svtplay-dl version: %s" % svtplaydlVersion)
+                    printInfo1("Output 0: %s" % output[0])
+                    printInfo1("Output 1: %s" % output[1])
                 if svtplaydlVersion == 0:
                     videoLink = output[1]
                 elif svtplaydlVersion == 1:

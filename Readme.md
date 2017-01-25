@@ -5,28 +5,31 @@ Prerequisites
 	ffmpeg or libav
 	mediainfo
 	rtmpdump
-	svtplay-dl
+	svtplay-dl			pip install svtplay-dl		(to be sure to get latest version)
 	
 	python modules:
-		BeautifulSoup
-		codecs
-		colorama
+	
+		module name		ubuntu/debian package
+		----------		-----------				
+		BeautifulSoup	python-beautifulsoup
+		codecs			
+		colorama		python-colorama
 		ConfigParser
 		datetime
-		django
+		django			python-django
 		getopt
 		grp
 		HTMLParser
 		json
 		os
 		re
-		requests
+		requests		python-requests
 		shlex
 		socket
 		stat
 		subprocess
 		sys
-		termcolor
+		termcolor		python-termcolor
 		urllib2
 		urlparse
 		xml
