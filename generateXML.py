@@ -140,6 +140,7 @@ def svtplaydlXML(url, name, fileInfo, downloadAll, setQuality, bestQuality, chec
                 if (myLoc.startswith('svtplay') or 
                     myLoc.startswith('svtklipp') or 
                     myLoc.startswith('svtarchive') or 
+                    myLoc.startswith('streaming4.ur.se') or 
                     myLoc.startswith('ed3.cdn.svt') or
                     myLoc.startswith("tv4play") or 
                     myLoc.startswith('nordond') or 
